@@ -5,4 +5,5 @@ export type Person = {
   username: string
   password: string
   email: string
+  fetch: typeof fetch
 }

@@ -1,93 +1,43 @@
+import { parseLinkHeader } from '@solid/community-server'
 import { expect } from 'chai'
-import * as cheerio from 'cheerio'
-import { createAccount } from 'css-authn/dist/7.x'
-import * as puppeteer from 'puppeteer'
-import { createSandbox } from 'sinon'
+import { createAccount, getAuthenticatedFetch } from 'css-authn/dist/7.x'
 import { v4 as uuidv4 } from 'uuid'
-import * as config from '../../config'
-import * as mailerService from '../../services/mailerService'
-import { setupEmailSettings } from './setupPod'
-import { Person } from './types'
 
-export const createRandomAccount = ({
+export const createRandomAccount = async ({
   solidServer,
 }: {
   solidServer: string
 }) => {
-  return createAccount({
+  const account = await createAccount({
     username: uuidv4(),
     password: uuidv4(),
     email: uuidv4() + '@example.com',
     provider: solidServer,
   })
-}
 
-export const initIntegration = async ({
-  email,
-  authenticatedFetch,
-}: {
-  email: string
-  authenticatedFetch: typeof fetch
-}) => {
-  const sandbox = createSandbox()
-  const sendMailSpy = sandbox.spy(mailerService, 'sendMail')
-  const initResponse = await authenticatedFetch(`${config.baseUrl}/init`, {
-    method: 'post',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email }),
+  const authenticatedFetch = await getAuthenticatedFetch({
+    email: account.email,
+    password: account.password,
+    provider: solidServer,
   })
 
-  expect(initResponse.status).to.equal(200)
-  // email was sent
-  const emailMessage = sendMailSpy.firstCall.firstArg.html
-  const $ = cheerio.load(emailMessage)
-  const verificationLink = $('a').first().attr('href') as string
-  expect(verificationLink).to.not.be.null
-  sandbox.restore()
-
-  return { verificationLink }
+  return { ...account, fetch: authenticatedFetch }
 }
 
-const finishIntegration = async (verificationLink: string) => {
-  const response = await fetch(verificationLink)
+/**
+ * Find link to ACL document for a given URI
+ */
+export const getAcl = async (
+  uri: string,
+  ffetch: typeof globalThis.fetch = globalThis.fetch,
+) => {
+  const response = await ffetch(uri, { method: 'HEAD' })
   expect(response.ok).to.be.true
-  const jwt = await response.text()
-  return { token: jwt }
-}
-
-export const verifyEmail = async ({
-  email,
-  person,
-  authenticatedFetch,
-}: {
-  email: string
-  person: Person
-  authenticatedFetch: typeof fetch
-}) => {
-  await setupEmailSettings({
-    person,
-    email: '',
-    emailVerificationToken: '',
-    authenticatedFetch,
-    skipSettings: true,
-  })
-
-  const { verificationLink } = await initIntegration({
-    email,
-    authenticatedFetch,
-  })
-
-  const { token } = await finishIntegration(verificationLink)
-
-  return token
-}
-
-export const takeScreenshot = async (email: { html: string }, name: string) => {
-  const browser = await puppeteer.launch()
-
-  const page = await browser.newPage()
-  await page.setContent(email.html)
-  await page.screenshot({ path: `screenshots/${name}.png` })
-
-  await browser.close()
+  const linkHeader = response.headers.get('link')
+  const links = parseLinkHeader(linkHeader ?? '')
+  const aclLink = links.find(link => link.parameters.rel === 'acl')
+  const aclUri = aclLink?.target
+  if (!aclUri) throw new Error(`We could not find WAC link for ${uri}`)
+  // if aclUri is relative, return absolute uri
+  return new URL(aclUri, uri).toString()
 }

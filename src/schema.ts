@@ -1,10 +1,3 @@
-export const init = {
-  type: 'object',
-  properties: { email: { type: 'string', format: 'email' } },
-  required: ['email'],
-  additionalProperties: false,
-}
-
 export const notification = {
   type: 'object',
   properties: {
@@ -16,29 +9,18 @@ export const notification = {
       properties: {
         type: { const: 'Person' },
         id: { type: 'string', format: 'uri' },
-        name: { type: 'string' },
       },
       required: ['type', 'id'],
     },
     object: {
       type: 'object',
       properties: {
-        type: { const: 'Note' },
+        type: { const: 'Thing' },
         id: { type: 'string', format: 'uri' },
-        content: { type: 'string' },
-      },
-      required: ['type', 'id', 'content'],
-    },
-    target: {
-      type: 'object',
-      properties: {
-        type: { const: 'Person' },
-        id: { type: 'string', format: 'uri' },
-        name: { type: 'string' },
       },
       required: ['type', 'id'],
     },
   },
-  required: ['@context', 'type', 'actor', 'object', 'target'],
+  required: ['@context', 'type', 'actor', 'object'],
   additionalProperties: false,
 }

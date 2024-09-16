@@ -1,24 +1,21 @@
 import * as css from '@solid/community-server'
-import fetch from 'cross-fetch'
-import { getAuthenticatedFetch } from 'css-authn/dist/7.x'
 import { IncomingMessage, Server, ServerResponse } from 'http'
-import MailDev from 'maildev'
-import { HttpResponse, http } from 'msw'
-import { SetupServer, setupServer } from 'msw/node'
+import { foaf } from 'rdf-namespaces'
 import app from '../app'
-import { port } from '../config'
+import { baseUrl, port } from '../config'
 import { createRandomAccount } from './helpers'
+import { createResource } from './helpers/setupPod'
 import type { Person } from './helpers/types'
 
 let server: Server<typeof IncomingMessage, typeof ServerResponse>
-let authenticatedFetch: typeof fetch
-let otherAuthenticatedFetch: typeof fetch
-let authenticatedFetch3: typeof fetch
 let person: Person
 let otherPerson: Person
 let person3: Person
 let cssServer: css.App
-let mockServer: SetupServer
+let group: Person & { groupURI?: string; groupResource?: string }
+
+const cssPort = 3456
+const cssUrl = `http://localhost:${cssPort}`
 
 before(async function () {
   this.timeout(60000)
@@ -38,7 +35,7 @@ before(async function () {
     // CSS cli options
     // https://github.com/CommunitySolidServer/CommunitySolidServer/tree/main#-parameters
     shorthand: {
-      port: 3456,
+      port: cssPort,
       loggingLevel: 'off',
       seedConfig: css.joinFilePath(__dirname, './css-pod-seed.json'), // set up some Solid accounts
     },
@@ -56,78 +53,35 @@ after(async () => {
 before(done => {
   server = app.listen(port, done)
 })
+
 after(done => {
   server.close(done)
-})
-
-// run maildev server
-let maildev: InstanceType<typeof MailDev>
-before(done => {
-  maildev = new MailDev({
-    silent: true, // Set to false if you want to see server logs
-    disableWeb: false, // Disable the web interface for testing
-  })
-  maildev.listen(done)
-})
-after(done => {
-  maildev.close(done)
 })
 
 /**
  * Before each test, create a new account and authenticate to it
  */
 beforeEach(async () => {
-  person = await createRandomAccount({ solidServer: 'http://localhost:3456' })
-  authenticatedFetch = await getAuthenticatedFetch({
-    email: person.email,
-    password: person.password,
-    provider: 'http://localhost:3456',
-  })
+  person = await createRandomAccount({ solidServer: cssUrl })
+  otherPerson = await createRandomAccount({ solidServer: cssUrl })
+  person3 = await createRandomAccount({ solidServer: cssUrl })
+  group = await createRandomAccount({ solidServer: cssUrl })
 
-  otherPerson = await createRandomAccount({
-    solidServer: 'http://localhost:3456',
-  })
-  otherAuthenticatedFetch = await getAuthenticatedFetch({
-    email: otherPerson.email,
-    password: otherPerson.password,
-    provider: 'http://localhost:3456',
-  })
+  group.groupResource = group.podUrl + 'group'
+  group.groupURI = group.groupResource + '#us'
 
-  person3 = await createRandomAccount({ solidServer: 'http://localhost:3456' })
-  authenticatedFetch3 = await getAuthenticatedFetch({
-    ...person3,
-    provider: 'http://localhost:3456',
+  await createResource({
+    url: group.groupResource,
+    body: `
+      @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+      <#us> vcard:hasMember <${person.webId}>, <${person3.webId}>, <${baseUrl}/profile/card#bot>.
+    `,
+    acls: [
+      { permissions: ['Read', 'Write', 'Control'], agents: [group.webId] },
+      { permissions: ['Read'], agentClasses: [foaf.Agent] },
+    ],
+    authenticatedFetch: group.fetch,
   })
 })
 
-// Enable request interception.
-beforeEach(async () => {
-  mockServer = setupServer(
-    // Describe network behavior with request handlers.
-    // Tip: move the handlers into their own module and
-    // import it across your browser and Node.js setups!
-    http.get('https://example.com/', (/*{ request, params, cookies }*/) => {
-      return HttpResponse.text(`
-          @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
-          <#us> vcard:hasMember <${person.webId}>, <${person3.webId}> .
-          `)
-    }),
-  )
-  mockServer.listen({ onUnhandledRequest() {} }) // quiet the unhandled request warnings
-})
-
-// Reset handlers so that each test could alter them
-// without affecting other, unrelated tests.
-afterEach(() => {
-  mockServer.resetHandlers()
-  mockServer.close()
-})
-
-export {
-  authenticatedFetch,
-  authenticatedFetch3,
-  otherAuthenticatedFetch,
-  otherPerson,
-  person,
-  person3,
-}
+export { group, person }

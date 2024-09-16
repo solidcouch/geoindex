@@ -4,14 +4,13 @@ import Router from '@koa/router'
 import Koa from 'koa'
 import helmet from 'koa-helmet'
 import serve from 'koa-static'
-import { allowedGroups, isBehindProxy } from './config'
+import { allowedGroups, baseUrl, isBehindProxy } from './config'
 import {
-  checkVerificationLink,
-  finishIntegration,
-  initializeIntegration,
-} from './controllers/integration'
-import { notification } from './controllers/notification'
-import { getStatus } from './controllers/status'
+  fetchThing,
+  saveThing,
+  validateThing,
+} from './controllers/processThing'
+import { fullJwkPublicKey } from './identity'
 import {
   authorizeGroups,
   checkGroupMembership,
@@ -24,9 +23,35 @@ const app = new Koa()
 app.proxy = isBehindProxy
 const router = new Router()
 
+router.get('/.well-known/openid-configuration', async ctx => {
+  ctx.body = {
+    issuer: baseUrl,
+    jwks_uri: baseUrl + '/jwks',
+    response_types_supported: ['id_token', 'token'],
+    scopes_supported: ['openid', 'webid'],
+  }
+})
+
+router.get('/jwks', async ctx => {
+  ctx.body = { keys: [fullJwkPublicKey] }
+})
+
+router.get('/profile/card', async ctx => {
+  ctx.set('Content-Type', 'text/turtle')
+
+  ctx.body = `
+    @prefix solid: <http://www.w3.org/ns/solid/terms#>.
+    @prefix foaf: <http://xmlns.com/foaf/0.1/>.
+
+    <#bot>
+        a foaf:Agent;
+        solid:oidcIssuer <${baseUrl}>.
+  `
+})
+
 router
   .post(
-    '/init',
+    '/inbox',
     solidAuth,
     authorizeGroups(allowedGroups),
     /* #swagger.requestBody = {
@@ -40,10 +65,11 @@ router
       },
     }
     */
-    validateBody(schema.init),
-    initializeIntegration,
+    validateBody(schema.notification),
+    fetchThing,
+    validateThing,
+    saveThing,
   )
-  .get('/verify-email', checkVerificationLink, finishIntegration)
   .post(
     '/notification',
     solidAuth,
@@ -61,14 +87,12 @@ router
     */
     validateBody(schema.notification),
     checkGroupMembership(allowedGroups, 'request.body.target.id', 400),
-    notification,
   )
   .get(
     '/status/:webId',
     solidAuth,
     authorizeGroups(allowedGroups),
     checkGroupMembership(allowedGroups, 'params.webId', 400),
-    getStatus,
   )
 
 app
