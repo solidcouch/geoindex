@@ -3,16 +3,17 @@ import { IncomingMessage, Server, ServerResponse } from 'http'
 import { foaf } from 'rdf-namespaces'
 import app from '../app'
 import { baseUrl, port } from '../config'
-import { createRandomAccount } from './helpers'
+import { Thing } from '../database'
+import { createRandomAccount, getDefaultPerson } from './helpers'
 import { createResource } from './helpers/setupPod'
 import type { Person } from './helpers/types'
 
 let server: Server<typeof IncomingMessage, typeof ServerResponse>
 let person: Person
-let otherPerson: Person
+let person2: Person
 let person3: Person
 let cssServer: css.App
-let group: Person & { groupURI?: string; groupResource?: string }
+let group: Person & { groupURI?: string }
 
 const cssPort = 3456
 const cssUrl = `http://localhost:${cssPort}`
@@ -58,20 +59,34 @@ after(done => {
   server.close(done)
 })
 
+// clear the database before each test
+beforeEach(async () => {
+  await Thing.destroy({ truncate: true })
+})
+
 /**
  * Before each test, create a new account and authenticate to it
  */
 beforeEach(async () => {
   person = await createRandomAccount({ solidServer: cssUrl })
-  otherPerson = await createRandomAccount({ solidServer: cssUrl })
+  person2 = await createRandomAccount({ solidServer: cssUrl })
   person3 = await createRandomAccount({ solidServer: cssUrl })
-  group = await createRandomAccount({ solidServer: cssUrl })
+  // group = await createRandomAccount({ solidServer: cssUrl })
 
-  group.groupResource = group.podUrl + 'group'
-  group.groupURI = group.groupResource + '#us'
+  // this account is defined in css-pod-seed.json
+  group = await getDefaultPerson(
+    {
+      email: 'group@example',
+      password: 'correcthorsebatterystaple',
+      pods: [{ name: 'group' }],
+    },
+    cssUrl,
+  )
+
+  group.groupURI = group.podUrl + 'group#us'
 
   await createResource({
-    url: group.groupResource,
+    url: group.groupURI,
     body: `
       @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
       <#us> vcard:hasMember <${person.webId}>, <${person3.webId}>, <${baseUrl}/profile/card#bot>.
@@ -84,4 +99,4 @@ beforeEach(async () => {
   })
 })
 
-export { group, person }
+export { group, person, person2 }

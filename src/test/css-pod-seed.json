@@ -13,5 +13,10 @@
     "email": "person2@example",
     "password": "password",
     "pods": [{ "name": "person2" }]
+  },
+  {
+    "email": "group@example",
+    "password": "correcthorsebatterystaple",
+    "pods": [{ "name": "group" }]
   }
 ]

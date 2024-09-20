@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { foaf, solid } from 'rdf-namespaces'
-import { getAcl } from '.'
+import { getAcl, getContainer, getResource } from '.'
 
 type ACLConfig = {
   permissions: ('Read' | 'Write' | 'Append' | 'Control')[]
@@ -19,7 +19,7 @@ export const createContainer = async ({
   acls?: ACLConfig[]
   authenticatedFetch: typeof fetch
 }) => {
-  const response = await authenticatedFetch(url, {
+  const response = await authenticatedFetch(getContainer(url), {
     method: 'PUT',
     headers: {
       'content-type': 'text/turtle',
@@ -51,7 +51,7 @@ export const createResource = async ({
   acls?: ACLConfig[]
   authenticatedFetch: typeof fetch
 }) => {
-  const response = await authenticatedFetch(url, {
+  const response = await authenticatedFetch(getResource(url), {
     method: 'PUT',
     headers: { 'content-type': 'text/turtle' },
     body,
@@ -63,7 +63,7 @@ export const createResource = async ({
     for (const aclConfig of acls) {
       await addAcl({
         ...aclConfig,
-        resource: url,
+        resource: getResource(url),
         authenticatedFetch,
       })
     }
