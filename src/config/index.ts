@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { Options } from 'sequelize'
+import { hospex } from '../namespaces'
 
 // the defaults work for tests. you should define your own
 // either via .env file, or via environment variables directly (depends on your setup)
@@ -24,7 +25,9 @@ const stringToArray = (value: string | undefined) => {
 
 export const allowedGroups = stringToArray(process.env.ALLOWED_GROUPS)
 
-export const thingType = process.env.THING_TYPE
+export const thingTypes = stringToArray(
+  process.env.THING_TYPES ?? hospex + 'Accommodation',
+)
 
 export const database: Options = {
   dialect: 'sqlite',

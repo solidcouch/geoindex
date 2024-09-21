@@ -25,7 +25,16 @@ Thing.init(
     uri: { type: DataTypes.STRING(), allowNull: false, unique: true },
     geohash: { type: DataTypes.STRING(10), allowNull: false },
   },
-  { sequelize },
+  {
+    sequelize,
+    indexes: [
+      {
+        name: 'geohash_index',
+        fields: ['geohash'],
+        using: 'BTREE',
+      },
+    ],
+  },
 )
 
 sequelize.sync()

@@ -3,7 +3,13 @@ import ngeohash from 'ngeohash'
 import { Op } from 'sequelize'
 import { baseUrl } from '../config'
 import { Thing } from '../database'
-import { generateAccommodationUri, getContainer, getResource } from './helpers'
+import { hospex } from '../namespaces'
+import {
+  createRandomThingsInDb,
+  generateAccommodationUri,
+  getContainer,
+  getResource,
+} from './helpers'
 import { createContainer, createResource } from './helpers/setupPod'
 import { Person } from './helpers/types'
 import { group, person, person2 } from './testSetup.spec'
@@ -72,27 +78,6 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
 
     const thing = await Thing.findOne({ where: { uri } })
     expect(thing).to.exist
-  }
-
-  const getRandomLocation = (): [number, number] => [
-    (Math.random() - 0.5) * 180,
-    (Math.random() - 0.5) * 360,
-  ]
-
-  /**
-   * Save a given amount of things with random URI and geohash to database
-   */
-  const createRandomThingsInDb = async (amount: number) => {
-    const things = Array(amount)
-      .fill(null)
-      .map((v, i) => ({
-        uri: generateAccommodationUri({
-          podUrl: `https://example.com/person${i}/`,
-        }),
-        geohash: ngeohash.encode(...getRandomLocation(), 10),
-      }))
-
-    await Thing.bulkCreate(things)
   }
 
   /**
@@ -228,13 +213,15 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
       expect(await Thing.count()).to.equal(10)
     })
 
-    it.only('[thing found, not relevant, not saved] should respond with 400', async () => {
+    it('[thing found, not relevant, not saved] should respond with 400', async () => {
+      await createRandomThingsInDb(10)
       await beforeNotSaved(accommodation)
       await beforeFound(
         accommodation,
         person,
         `https://example.com/ns#Accommodation`,
       )
+      expect(await Thing.count()).to.equal(10)
 
       const response = await person.fetch(`${baseUrl}/inbox`, {
         method: 'POST',
@@ -253,12 +240,42 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
       expect(response.status).to.equal(400)
       const body = await response.text()
       expect(body).to.include("The service doesn't index things of this type")
-      throw new Error('TODO include expected and actual type')
+      expect(body).to.include(
+        `Expected types: <${
+          hospex + 'Accommodation'
+        }>. Actual types: <https://example.com/ns#Accommodation>.`,
+      )
+      expect(await Thing.count()).to.equal(10)
     })
 
-    it(
-      '[thing found, not relevant, saved] should remove it from db and respond with 204',
-    )
+    it('[thing found, not relevant, saved] should remove it from db and respond with 204', async () => {
+      await createRandomThingsInDb(10)
+      await beforeSaved(accommodation)
+      await beforeFound(
+        accommodation,
+        person,
+        `https://example.com/ns#Accommodation`,
+      )
+      expect(await Thing.count()).to.equal(11)
+
+      const response = await person.fetch(`${baseUrl}/inbox`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/ld+json' },
+        body: JSON.stringify({
+          '@context': 'https://www.w3.org/ns/activitystreams',
+          type: 'Create',
+          actor: { type: 'Person', id: person.webId },
+          object: {
+            type: 'Thing',
+            id: accommodation,
+          },
+        }),
+      })
+
+      expect(response.status).to.equal(204)
+
+      expect(await Thing.count()).to.equal(10)
+    })
 
     it('[thing found, relevant, not saved] should add it to db and respond with 201', async () => {
       await beforeNotSaved(accommodation)
@@ -331,5 +348,8 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
     )
 
     it("[thing couldn't be accessed] TODO")
+
+    it('[thing found, invalid, saved] should remove the thing and respond 204')
+    it('[thing found, invalid, not saved] should respond with 400')
   })
 })

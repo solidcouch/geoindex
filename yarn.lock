@@ -6915,6 +6915,15 @@ n3@^1.17.1, n3@^1.17.2:
     queue-microtask "^1.1.2"
     readable-stream "^4.0.0"
 
+n3@^1.22.0:
+  version "1.22.0"
+  resolved "https://registry.npmjs.org/n3/-/n3-1.22.0.tgz#23c2a9d74b896ffa0903d4f752f458b9d8e1a9ed"
+  integrity sha512-0SmSJCUviTbQtbHGFuTYVumu06juM1iDnXBAD0TNdwlGt2w+w85wZeCanA0/tc2M3ucc0mS2jiIrpw0KfkG/dw==
+  dependencies:
+    buffer "^6.0.3"
+    queue-microtask "^1.1.2"
+    readable-stream "^4.0.0"
+
 nanoid@3.3.3:
   version "3.3.3"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.3.tgz#fd8e8b7aa761fe807dba2d1b98fb7241bb724a25"

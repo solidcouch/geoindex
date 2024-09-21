@@ -1,11 +1,13 @@
 import type { Middleware } from 'koa'
 import { Parser, Store } from 'n3'
 import ngeohash from 'ngeohash'
+import { rdf } from 'rdf-namespaces'
+import { thingTypes } from '../config'
 import { Thing } from '../database'
 import { getAuthenticatedFetch } from '../identity'
 import { geo } from '../namespaces'
 
-export const fetchThing: Middleware = async (ctx, next) => {
+export const fetchThing: Middleware = async ctx => {
   const {
     object: { id: thing },
   } = ctx.request.body
@@ -37,12 +39,42 @@ export const fetchThing: Middleware = async (ctx, next) => {
   const quads = parser.parse(body)
   const store = new Store(quads)
   const locations = store.getObjects(thing, geo + 'location', null)
+  const types = store.getObjects(thing, rdf.type, null)
   const latitudes = locations
     .flatMap(loc => store.getObjects(loc, geo + 'lat', null))
     .map(n => Number(n.value))
   const longitudes = locations
     .flatMap(loc => store.getObjects(loc, geo + 'long', null))
     .map(n => Number(n.value))
+
+  const relevantTypes = types
+    .filter(type => type.termType === 'NamedNode')
+    .filter(type => thingTypes.includes(type.value))
+
+  const hasRelevantType = relevantTypes.length > 0
+
+  if (!hasRelevantType) {
+    const count = await Thing.count({ where: { uri: thing } })
+
+    const expectedActual = `Expected types: ${thingTypes
+      .map(type => `<${type}>`)
+      .join(', ')}. Actual types: ${types
+      .map(type => `<${type.value}>`)
+      .join(',')}.`
+
+    if (count > 0) {
+      await Thing.destroy({ where: { uri: thing } })
+      ctx.status = 204
+      ctx.body =
+        "The thing was removed from the index because it doesn't have a relevant type. " +
+        expectedActual
+      return
+    } else
+      ctx.throw(
+        400,
+        "The service doesn't index things of this type. " + expectedActual,
+      )
+  }
 
   if (
     latitudes.length !== 1 ||

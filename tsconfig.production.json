@@ -9,8 +9,8 @@
     "rootDir": "src",
     "strict": true,
     "noImplicitAny": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "lib": ["esnext"]
   },
-  "lib": ["esnext"],
   "exclude": ["src/test", "src/generate-api-docs.ts"]
 }

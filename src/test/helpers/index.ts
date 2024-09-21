@@ -1,7 +1,9 @@
 import { parseLinkHeader } from '@solid/community-server'
 import { expect } from 'chai'
 import { createAccount, getAuthenticatedFetch } from 'css-authn/dist/7.x'
+import ngeohash from 'ngeohash'
 import { v4 as uuidv4 } from 'uuid'
+import { Thing } from '../../database'
 import { Person } from './types'
 
 export const createRandomAccount = async ({
@@ -85,4 +87,25 @@ export const getDefaultPerson = async (
     ...withoutFetch,
     fetch: await getAuthenticatedFetch({ ...withoutFetch, provider: cssUrl }),
   }
+}
+
+const getRandomLocation = (): [number, number] => [
+  (Math.random() - 0.5) * 180,
+  (Math.random() - 0.5) * 360,
+]
+
+/**
+ * Save a given amount of things with random URI and geohash to database
+ */
+export const createRandomThingsInDb = async (amount: number) => {
+  const things = Array(amount)
+    .fill(null)
+    .map((v, i) => ({
+      uri: generateAccommodationUri({
+        podUrl: `https://example.com/person${i}/`,
+      }),
+      geohash: ngeohash.encode(...getRandomLocation(), 10),
+    }))
+
+  await Thing.bulkCreate(things)
 }

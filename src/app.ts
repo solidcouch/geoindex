@@ -10,11 +10,9 @@ import {
   saveThing,
   validateThing,
 } from './controllers/processThing'
+import { queryThings } from './controllers/query'
 import { fullJwkPublicKey } from './identity'
-import {
-  authorizeGroups,
-  checkGroupMembership,
-} from './middlewares/authorizeGroup'
+import { authorizeGroups } from './middlewares/authorizeGroup'
 import { solidAuth } from './middlewares/solidAuth'
 import { validateBody } from './middlewares/validate'
 import * as schema from './schema'
@@ -70,30 +68,31 @@ router
     validateThing,
     saveThing,
   )
-  .post(
-    '/notification',
-    solidAuth,
-    authorizeGroups(allowedGroups),
-    /* #swagger.requestBody = {
-      required: true,
-      content: {
-        'application/ld+json': {
-          schema: {
-            $ref: '#/components/schemas/notification',
-          },
-        },
-      },
-    }
-    */
-    validateBody(schema.notification),
-    checkGroupMembership(allowedGroups, 'request.body.target.id', 400),
-  )
-  .get(
-    '/status/:webId',
-    solidAuth,
-    authorizeGroups(allowedGroups),
-    checkGroupMembership(allowedGroups, 'params.webId', 400),
-  )
+  .get('/query', solidAuth, authorizeGroups(allowedGroups), queryThings)
+// .post(
+//   '/notification',
+//   solidAuth,
+//   authorizeGroups(allowedGroups),
+//   /* #swagger.requestBody = {
+//     required: true,
+//     content: {
+//       'application/ld+json': {
+//         schema: {
+//           $ref: '#/components/schemas/notification',
+//         },
+//       },
+//     },
+//   }
+//   */
+//   validateBody(schema.notification),
+//   checkGroupMembership(allowedGroups, 'request.body.target.id', 400),
+// )
+// .get(
+//   '/status/:webId',
+//   solidAuth,
+//   authorizeGroups(allowedGroups),
+//   checkGroupMembership(allowedGroups, 'params.webId', 400),
+// )
 
 app
   .use(helmet())
