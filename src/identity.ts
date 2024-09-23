@@ -5,7 +5,6 @@ import {
 import { calculateJwkThumbprint, SignJWT } from 'jose'
 import { createHash, generateKeyPairSync } from 'node:crypto'
 import { v4 as uuidv4 } from 'uuid'
-import { baseUrl } from './config'
 
 const tokenKeyPair = generateKeyPairSync('ec', { namedCurve: 'P-256' })
 
@@ -22,9 +21,11 @@ export const fullJwkPublicKey = {
   kid,
 }
 
-export const getAuthenticatedFetch = async (): Promise<
-  typeof globalThis.fetch
-> => {
+export const getAuthenticatedFetch = async ({
+  baseUrl,
+}: {
+  baseUrl: string
+}): Promise<typeof globalThis.fetch> => {
   const dpopKey = await generateDpopKeyPair()
 
   const jkt = await calculateJwkThumbprint(

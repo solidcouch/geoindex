@@ -1,18 +1,17 @@
 import { expect } from 'chai'
 import ngeohash from 'ngeohash'
 import { Op } from 'sequelize'
-import { baseUrl } from '../config'
-import { Thing } from '../database'
-import { hospex } from '../namespaces'
+import { Thing } from '../database.js'
+import { hospex } from '../namespaces.js'
 import {
   createRandomThingsInDb,
   generateAccommodationUri,
   getContainer,
   getResource,
-} from './helpers'
-import { createContainer, createResource } from './helpers/setupPod'
-import { Person } from './helpers/types'
-import { group, person, person2 } from './testSetup.spec'
+} from './helpers/index.js'
+import { createContainer, createResource } from './helpers/setupPod.js'
+import { Person } from './helpers/types.js'
+import { baseUrl, group, person, person2 } from './testSetup.spec.js'
 
 describe("POST /inbox When a person creates, updates, or removes a Thing, they can send a notification to this service's inbox. The service will fetch and save the thing's uri, location and owner, as long as it is a valid thing interesting for this service.", () => {
   // the example accommodation for the given person

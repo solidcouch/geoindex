@@ -3,14 +3,9 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  Options,
   Sequelize,
 } from 'sequelize'
-import { database } from './config'
-
-const sequelize = new Sequelize({
-  logging: false,
-  ...database,
-})
 
 export class Thing extends Model<
   InferAttributes<Thing>,
@@ -20,21 +15,28 @@ export class Thing extends Model<
   declare geohash: string
 }
 
-Thing.init(
-  {
-    uri: { type: DataTypes.STRING(), allowNull: false, unique: true },
-    geohash: { type: DataTypes.STRING(10), allowNull: false },
-  },
-  {
-    sequelize,
-    indexes: [
-      {
-        name: 'geohash_index',
-        fields: ['geohash'],
-        using: 'BTREE',
-      },
-    ],
-  },
-)
+export const initializeDatabase = async (database: Options) => {
+  const sequelize = new Sequelize({
+    logging: false,
+    ...database,
+  })
 
-sequelize.sync()
+  Thing.init(
+    {
+      uri: { type: DataTypes.STRING(), allowNull: false, unique: true },
+      geohash: { type: DataTypes.STRING(10), allowNull: false },
+    },
+    {
+      sequelize,
+      indexes: [
+        {
+          name: 'geohash_index',
+          fields: ['geohash'],
+          using: 'BTREE',
+        },
+      ],
+    },
+  )
+
+  await sequelize.sync()
+}

@@ -1,7 +1,7 @@
 import { Middleware } from 'koa'
 import { DataFactory, Quad, Writer } from 'n3'
 import { Op } from 'sequelize'
-import { Thing } from '../database'
+import { Thing } from '../database.js'
 
 export const queryThings: Middleware = async ctx => {
   const objectRaw = ctx.query.object

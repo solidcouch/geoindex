@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { foaf, solid } from 'rdf-namespaces'
-import { getAcl, getContainer, getResource } from '.'
+import { getAcl, getContainer, getResource } from './index.js'
 
 type ACLConfig = {
   permissions: ('Read' | 'Write' | 'Append' | 'Control')[]
@@ -70,32 +70,32 @@ export const createResource = async ({
   }
 }
 
-const patchFile = async ({
-  url,
-  inserts = '',
-  deletes = '',
-  authenticatedFetch,
-}: {
-  url: string
-  inserts?: string
-  deletes?: string
-  authenticatedFetch: typeof fetch
-}) => {
-  if (!inserts && !deletes) return
-  const patch = `@prefix solid: <http://www.w3.org/ns/solid/terms#>.
+// const patchFile = async ({
+//   url,
+//   inserts = '',
+//   deletes = '',
+//   authenticatedFetch,
+// }: {
+//   url: string
+//   inserts?: string
+//   deletes?: string
+//   authenticatedFetch: typeof fetch
+// }) => {
+//   if (!inserts && !deletes) return
+//   const patch = `@prefix solid: <http://www.w3.org/ns/solid/terms#>.
 
-  _:patch a solid:InsertDeletePatch;
-    ${inserts ? `solid:inserts { ${inserts} }` : ''}
-    ${inserts && deletes ? ';' : ''}
-    ${deletes ? `solid:deletes { ${deletes} }` : ''}
-    .`
-  const response = await authenticatedFetch(url, {
-    method: 'PATCH',
-    body: patch,
-    headers: { 'content-type': 'text/n3' },
-  })
-  expect(response.ok).to.be.true
-}
+//   _:patch a solid:InsertDeletePatch;
+//     ${inserts ? `solid:inserts { ${inserts} }` : ''}
+//     ${inserts && deletes ? ';' : ''}
+//     ${deletes ? `solid:deletes { ${deletes} }` : ''}
+//     .`
+//   const response = await authenticatedFetch(url, {
+//     method: 'PATCH',
+//     body: patch,
+//     headers: { 'content-type': 'text/n3' },
+//   })
+//   expect(response.ok).to.be.true
+// }
 
 const addAcl = async ({
   permissions,

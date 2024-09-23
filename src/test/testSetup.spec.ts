@@ -1,12 +1,20 @@
 import * as css from '@solid/community-server'
 import { IncomingMessage, Server, ServerResponse } from 'http'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { foaf } from 'rdf-namespaces'
-import app from '../app'
-import { baseUrl, port } from '../config'
-import { Thing } from '../database'
-import { createRandomAccount, getDefaultPerson } from './helpers'
-import { createResource } from './helpers/setupPod'
-import type { Person } from './helpers/types'
+import { createApp } from '../app.js'
+import * as config from '../config/index.js'
+import { Thing } from '../database.js'
+import {
+  createRandomAccount,
+  getDefaultPerson,
+  getRandomPort,
+} from './helpers/index.js'
+import { createResource } from './helpers/setupPod.js'
+import type { Person } from './helpers/types.js'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 let server: Server<typeof IncomingMessage, typeof ServerResponse>
 let person: Person
@@ -14,9 +22,20 @@ let person2: Person
 let person3: Person
 let cssServer: css.App
 let group: Person & { groupURI?: string }
+let cssPort: number
+let cssUrl: string
+let baseUrl: string
+let port: number
+let allowedGroups: string[]
 
-const cssPort = 3456
-const cssUrl = `http://localhost:${cssPort}`
+before(() => {
+  cssPort = getRandomPort()
+  cssUrl = `http://localhost:${cssPort}`
+  allowedGroups = [cssUrl + '/group/group#us']
+
+  port = getRandomPort()
+  baseUrl = `http://localhost:${port}`
+})
 
 before(async function () {
   this.timeout(60000)
@@ -44,7 +63,13 @@ before(async function () {
   await cssServer.start()
 
   // eslint-disable-next-line no-console
-  console.log('CSS server started in', (Date.now() - start) / 1000, 'seconds')
+  console.log(
+    'CSS server started on port',
+    cssPort,
+    'in',
+    (Date.now() - start) / 1000,
+    'seconds',
+  )
 })
 
 after(async () => {
@@ -52,7 +77,13 @@ after(async () => {
 })
 
 before(done => {
-  server = app.listen(port, done)
+  createApp({
+    ...config,
+    baseUrl,
+    allowedGroups,
+  }).then(app => {
+    server = app.listen(port, done)
+  })
 })
 
 after(done => {
@@ -99,4 +130,4 @@ beforeEach(async () => {
   })
 })
 
-export { group, person, person2 }
+export { baseUrl, group, person, person2 }

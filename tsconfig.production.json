@@ -1,16 +1,19 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
     "esModuleInterop": true,
     "target": "es6",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "sourceMap": true,
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
     "noImplicitAny": true,
     "downlevelIteration": true,
-    "lib": ["esnext"]
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "lib": ["esnext", "dom"]
   },
   "exclude": ["src/test", "src/generate-api-docs.ts"]
 }

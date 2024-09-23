@@ -2,3 +2,4 @@ extension: [ts]
 spec: src/test/*.spec.ts
 require: ts-node/register
 timeout: 10000
+loader: ts-node/esm

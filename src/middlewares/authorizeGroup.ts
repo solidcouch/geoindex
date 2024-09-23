@@ -1,5 +1,5 @@
 import { Middleware } from 'koa'
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import { Parser } from 'n3'
 import { vcard } from 'rdf-namespaces'
 
@@ -28,7 +28,7 @@ const isSomeGroupMember = async (user: string, groups: string[]) => {
 /**
  * Check whether a user specified in param is member of any of the given groups
  */
-export const checkGroupMembership =
+const checkGroupMembership =
   (
     groups: string[],
     path: string,

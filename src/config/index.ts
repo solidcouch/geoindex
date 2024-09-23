@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { Options } from 'sequelize'
-import { hospex } from '../namespaces'
+import { hospex } from '../namespaces.js'
 
 // the defaults work for tests. you should define your own
 // either via .env file, or via environment variables directly (depends on your setup)

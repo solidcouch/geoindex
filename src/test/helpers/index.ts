@@ -1,10 +1,10 @@
 import { parseLinkHeader } from '@solid/community-server'
 import { expect } from 'chai'
-import { createAccount, getAuthenticatedFetch } from 'css-authn/dist/7.x'
+import { createAccount, getAuthenticatedFetch } from 'css-authn/dist/7.x.js'
 import ngeohash from 'ngeohash'
 import { v4 as uuidv4 } from 'uuid'
-import { Thing } from '../../database'
-import { Person } from './types'
+import { Thing } from '../../database.js'
+import { Person } from './types.js'
 
 export const createRandomAccount = async ({
   solidServer,
@@ -108,4 +108,11 @@ export const createRandomThingsInDb = async (amount: number) => {
     }))
 
   await Thing.bulkCreate(things)
+}
+
+export function getRandomPort(): number {
+  // Generate a random number between 1024 and 65535
+  const min = 1024
+  const max = 65535
+  return Math.floor(Math.random() * (max - min + 1)) + min
 }

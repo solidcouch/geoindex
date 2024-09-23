@@ -2,19 +2,21 @@ import type { Middleware } from 'koa'
 import { Parser, Store } from 'n3'
 import ngeohash from 'ngeohash'
 import { rdf } from 'rdf-namespaces'
-import { thingTypes } from '../config'
-import { Thing } from '../database'
-import { getAuthenticatedFetch } from '../identity'
-import { geo } from '../namespaces'
+import { Thing } from '../database.js'
+import { getAuthenticatedFetch } from '../identity.js'
+import { AppConfig } from '../middlewares/loadConfig.js'
+import { geo } from '../namespaces.js'
 
-export const fetchThing: Middleware = async ctx => {
+export const fetchThing: Middleware<{ config: AppConfig }> = async ctx => {
   const {
     object: { id: thing },
   } = ctx.request.body
 
+  const { baseUrl, thingTypes } = ctx.state.config
+
   if (typeof thing !== 'string') throw new Error('thing is not URI')
 
-  const authFetch = await getAuthenticatedFetch()
+  const authFetch = await getAuthenticatedFetch({ baseUrl })
 
   const response = await authFetch(thing)
 
@@ -91,8 +93,6 @@ export const fetchThing: Middleware = async ctx => {
   const thingCountBefore = await Thing.count({ where: { uri: thing } })
 
   await Thing.upsert({ uri: thing, geohash })
-
-  console.log('***********', coordinates, geohash)
 
   ctx.status = thingCountBefore ? 200 : 201
 }

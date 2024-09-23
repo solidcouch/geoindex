@@ -1,9 +1,8 @@
 import { expect } from 'chai'
 import { DataFactory, Parser, Store } from 'n3'
-import { baseUrl } from '../config'
-import { Thing } from '../database'
-import { createRandomThingsInDb } from './helpers'
-import { person, person2 } from './testSetup.spec'
+import { Thing } from '../database.js'
+import { createRandomThingsInDb } from './helpers/index.js'
+import { baseUrl, person, person2 } from './testSetup.spec.js'
 
 const { namedNode, quad, literal } = DataFactory
 
@@ -48,9 +47,12 @@ describe('Group members can query service for Things at certain geohash, using T
       expectedTriples.forEach(triple => {
         expect(store.has(triple)).to.be.true
       })
-
-      console.log(body, '***')
     })
+
+    it('pagination')
+    it('validation')
+    it('different - unsupported - query paramvalues')
+    it('no query params specified')
   })
 
   context('not a group member', () => {
