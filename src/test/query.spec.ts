@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { DataFactory, Parser, Store } from 'n3'
 import { Thing } from '../database.js'
 import { createRandomThingsInDb } from './helpers/index.js'
-import { baseUrl, person, person2 } from './testSetup.spec.js'
+import { appConfig, person, person2 } from './testSetup.spec.js'
 
 const { namedNode, quad, literal } = DataFactory
 
@@ -15,7 +15,7 @@ describe('Group members can query service for Things at certain geohash, using T
         geohash: 'ez4npft5gw',
       })
       const response = await person.fetch(
-        `${baseUrl}/query?predicate=${encodeURIComponent(
+        `${appConfig.baseUrl}/query?predicate=${encodeURIComponent(
           'https://example.com/ns#geohash',
         )}&object=${encodeURIComponent('"ez"')}`,
       )
@@ -62,7 +62,7 @@ describe('Group members can query service for Things at certain geohash, using T
         geohash: 'uxezuxezuxez',
       })
       const response = await person2.fetch(
-        `${baseUrl}/query?predicate=${encodeURIComponent(
+        `${appConfig.baseUrl}/query?predicate=${encodeURIComponent(
           'https://example.com/ns#geohash',
         )}&object=${encodeURIComponent('"ux"')}`,
       )
@@ -78,7 +78,7 @@ describe('Group members can query service for Things at certain geohash, using T
         geohash: 'uxezuxezuxez',
       })
       const response = await fetch(
-        `${baseUrl}/query?predicate=${encodeURIComponent(
+        `${appConfig.baseUrl}/query?predicate=${encodeURIComponent(
           'https://example.com/ns#geohash',
         )}&object=${encodeURIComponent('"ux"')}`,
       )

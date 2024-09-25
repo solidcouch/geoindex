@@ -11,7 +11,7 @@ import {
 } from './helpers/index.js'
 import { createContainer, createResource } from './helpers/setupPod.js'
 import { Person } from './helpers/types.js'
-import { baseUrl, group, person, person2 } from './testSetup.spec.js'
+import { appConfig, group, person, person2 } from './testSetup.spec.js'
 
 describe("POST /inbox When a person creates, updates, or removes a Thing, they can send a notification to this service's inbox. The service will fetch and save the thing's uri, location and owner, as long as it is a valid thing interesting for this service.", () => {
   // the example accommodation for the given person
@@ -23,7 +23,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
 
   context('not authenticated', () => {
     it('should respond with 401', async () => {
-      const response = await fetch(`${baseUrl}/inbox`, {
+      const response = await fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
@@ -43,7 +43,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
 
   context('not a group member', () => {
     it('should respond with 403', async () => {
-      const response = await person2.fetch(`${baseUrl}/inbox`, {
+      const response = await person2.fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
@@ -118,7 +118,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
   const beforeFound = async (
     uri: string,
     person: Person,
-    thing = 'http://w3id.org/hospex/ns#Accommodation',
+    thing = hospex + 'Accommodation',
   ) => {
     // TODO create an accommodation that the group can read
     const container = getContainer(uri)
@@ -167,7 +167,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
 
       expect(await Thing.count()).to.equal(10)
 
-      const response = await person.fetch(`${baseUrl}/inbox`, {
+      const response = await person.fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
@@ -193,7 +193,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
 
       expect(await Thing.count()).to.equal(11)
 
-      const response = await person.fetch(`${baseUrl}/inbox`, {
+      const response = await person.fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
@@ -222,7 +222,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
       )
       expect(await Thing.count()).to.equal(10)
 
-      const response = await person.fetch(`${baseUrl}/inbox`, {
+      const response = await person.fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
@@ -257,7 +257,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
       )
       expect(await Thing.count()).to.equal(11)
 
-      const response = await person.fetch(`${baseUrl}/inbox`, {
+      const response = await person.fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
@@ -280,7 +280,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
       await beforeNotSaved(accommodation)
       await beforeFound(accommodation, person)
 
-      const response = await person.fetch(`${baseUrl}/inbox`, {
+      const response = await person.fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
@@ -315,7 +315,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
 
       expect(thingsBefore).to.have.length(1)
 
-      const response = await person.fetch(`${baseUrl}/inbox`, {
+      const response = await person.fetch(`${appConfig.baseUrl}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({

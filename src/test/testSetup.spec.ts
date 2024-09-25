@@ -4,7 +4,7 @@ import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { foaf } from 'rdf-namespaces'
 import { createApp } from '../app.js'
-import * as config from '../config/index.js'
+import * as importedConfig from '../config/index.js'
 import { Thing } from '../database.js'
 import {
   createRandomAccount,
@@ -22,19 +22,19 @@ let person2: Person
 let person3: Person
 let cssServer: css.App
 let group: Person & { groupURI?: string }
-let cssPort: number
-let cssUrl: string
-let baseUrl: string
-let port: number
-let allowedGroups: string[]
+const appConfig = { ...importedConfig }
+const testConfig = {
+  cssPort: -1,
+  cssUrl: '',
+}
 
 before(() => {
-  cssPort = getRandomPort()
-  cssUrl = `http://localhost:${cssPort}`
-  allowedGroups = [cssUrl + '/group/group#us']
+  testConfig.cssPort = getRandomPort()
+  testConfig.cssUrl = `http://localhost:${testConfig.cssPort}`
 
-  port = getRandomPort()
-  baseUrl = `http://localhost:${port}`
+  appConfig.allowedGroups = [testConfig.cssUrl + '/group/group#us']
+  appConfig.port = getRandomPort()
+  appConfig.baseUrl = `http://localhost:${appConfig.port}`
 })
 
 before(async function () {
@@ -50,12 +50,12 @@ before(async function () {
       typeChecking: false, // ?
       dumpErrorState: false, // disable CSS error dump
     },
-    config: css.joinFilePath(__dirname, './css-default-config.json'), // CSS config
+    config: css.joinFilePath(__dirname, './css-default-config.json'), // CSS appConfig
     variableBindings: {},
     // CSS cli options
     // https://github.com/CommunitySolidServer/CommunitySolidServer/tree/main#-parameters
     shorthand: {
-      port: cssPort,
+      port: testConfig.cssPort,
       loggingLevel: 'off',
       seedConfig: css.joinFilePath(__dirname, './css-pod-seed.json'), // set up some Solid accounts
     },
@@ -65,7 +65,7 @@ before(async function () {
   // eslint-disable-next-line no-console
   console.log(
     'CSS server started on port',
-    cssPort,
+    testConfig.cssPort,
     'in',
     (Date.now() - start) / 1000,
     'seconds',
@@ -77,12 +77,8 @@ after(async () => {
 })
 
 before(done => {
-  createApp({
-    ...config,
-    baseUrl,
-    allowedGroups,
-  }).then(app => {
-    server = app.listen(port, done)
+  createApp(appConfig).then(app => {
+    server = app.listen(appConfig.port, done)
   })
 })
 
@@ -99,9 +95,9 @@ beforeEach(async () => {
  * Before each test, create a new account and authenticate to it
  */
 beforeEach(async () => {
-  person = await createRandomAccount({ solidServer: cssUrl })
-  person2 = await createRandomAccount({ solidServer: cssUrl })
-  person3 = await createRandomAccount({ solidServer: cssUrl })
+  person = await createRandomAccount({ solidServer: testConfig.cssUrl })
+  person2 = await createRandomAccount({ solidServer: testConfig.cssUrl })
+  person3 = await createRandomAccount({ solidServer: testConfig.cssUrl })
   // group = await createRandomAccount({ solidServer: cssUrl })
 
   // this account is defined in css-pod-seed.json
@@ -111,7 +107,7 @@ beforeEach(async () => {
       password: 'correcthorsebatterystaple',
       pods: [{ name: 'group' }],
     },
-    cssUrl,
+    testConfig.cssUrl,
   )
 
   group.groupURI = group.podUrl + 'group#us'
@@ -120,7 +116,7 @@ beforeEach(async () => {
     url: group.groupURI,
     body: `
       @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
-      <#us> vcard:hasMember <${person.webId}>, <${person3.webId}>, <${baseUrl}/profile/card#bot>.
+      <#us> vcard:hasMember <${person.webId}>, <${person3.webId}>, <${appConfig.baseUrl}/profile/card#bot>.
     `,
     acls: [
       { permissions: ['Read', 'Write', 'Control'], agents: [group.webId] },
@@ -130,4 +126,4 @@ beforeEach(async () => {
   })
 })
 
-export { baseUrl, group, person, person2 }
+export { appConfig, group, person, person2, testConfig }

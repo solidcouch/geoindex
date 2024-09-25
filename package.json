@@ -11,7 +11,6 @@
     "lint": "eslint . --ext .ts",
     "test": "mocha",
     "test:watch": "mocha --watch --parallel",
-    "generate-key": "openssl ecparam -name prime256v1 -genkey -noout -out ecdsa-p256-private.pem",
     "generate-api-docs": "tsc && node dist/generate-api-docs.js"
   },
   "devDependencies": {
@@ -59,6 +58,7 @@
     "@types/node": "^20.4.2",
     "ajv": "^8.17.1",
     "ajv-formats": "^2.1.1",
+    "cron": "^3.1.7",
     "css-authn": "^0.0.15-alpha.3",
     "dotenv": "^16.0.0",
     "fs-extra": "^11.2.0",

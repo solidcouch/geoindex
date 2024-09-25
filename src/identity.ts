@@ -3,8 +3,7 @@ import {
   generateDpopKeyPair,
 } from '@inrupt/solid-client-authn-core'
 import { calculateJwkThumbprint, SignJWT } from 'jose'
-import { createHash, generateKeyPairSync } from 'node:crypto'
-import { v4 as uuidv4 } from 'uuid'
+import { createHash, generateKeyPairSync, randomUUID } from 'node:crypto'
 
 const tokenKeyPair = generateKeyPairSync('ec', { namedCurve: 'P-256' })
 
@@ -45,7 +44,7 @@ export const getAuthenticatedFetch = async ({
     .setExpirationTime(now + 3600)
     .setAudience('solid')
     .setIssuer(baseUrl)
-    .setJti(uuidv4())
+    .setJti(randomUUID())
     .sign(tokenKeyPair.privateKey)
 
   return await buildAuthenticatedFetch(token, { dpopKey })

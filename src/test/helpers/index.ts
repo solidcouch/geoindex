@@ -2,8 +2,11 @@ import { parseLinkHeader } from '@solid/community-server'
 import { expect } from 'chai'
 import { createAccount, getAuthenticatedFetch } from 'css-authn/dist/7.x.js'
 import ngeohash from 'ngeohash'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'node:crypto'
+import { foaf, sioc, solid } from 'rdf-namespaces'
 import { Thing } from '../../database.js'
+import { hospex } from '../../namespaces.js'
+import { createContainer, createResource, patchFile } from './setupPod.js'
 import { Person } from './types.js'
 
 export const createRandomAccount = async ({
@@ -12,9 +15,9 @@ export const createRandomAccount = async ({
   solidServer: string
 }) => {
   const account = await createAccount({
-    username: uuidv4(),
-    password: uuidv4(),
-    email: uuidv4() + '@example.com',
+    username: randomUUID(),
+    password: randomUUID(),
+    email: randomUUID() + '@example.com',
     provider: solidServer,
   })
 
@@ -25,6 +28,118 @@ export const createRandomAccount = async ({
   })
 
   return { ...account, fetch: authenticatedFetch }
+}
+
+/**
+ * Setup hospex document, type index, and accommodations for the given person
+ */
+export const setupThingsForPerson = async ({
+  person,
+  group,
+  community,
+  things: thingCount,
+}: {
+  person: Person
+  group: string
+  community: string
+  things: number
+}) => {
+  const accommodations = Array.from({ length: thingCount }, () =>
+    generateAccommodationUri(person),
+  )
+  const hospexContainer = getContainer(generateAccommodationUri(person))
+  // create hospex container
+
+  await createContainer({
+    url: hospexContainer,
+    acls: [
+      {
+        permissions: ['Read', 'Write', 'Control'],
+        agents: [person.webId],
+        isDefault: true,
+      },
+      {
+        permissions: ['Read'],
+        agentGroups: [group],
+        isDefault: true,
+      },
+    ],
+    authenticatedFetch: person.fetch,
+  })
+
+  // create accommodations
+  for (const accommodationUri of accommodations) {
+    const [lat, long] = getRandomLocation()
+    const resource = getResource(accommodationUri)
+    const fragment = new URL(accommodationUri).hash
+
+    await createResource({
+      url: resource,
+      body: `
+          @prefix geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>.
+
+          <${fragment}>
+            a <${hospex + 'Accommodation'}>;
+            geo:location <#location>.
+          <#location> a geo:Location;
+            geo:lat ${lat};
+            geo:long ${long}.
+        `,
+      authenticatedFetch: person.fetch,
+    })
+  }
+  // create personal hospex document with linked accommodations
+
+  const personalHospexDocument = hospexContainer + 'card'
+
+  await createResource({
+    url: personalHospexDocument,
+    body: `
+    @prefix hospex: <${hospex}>.
+
+    <${person.webId}> <${sioc.member_of}> <${community}>;
+    ${
+      accommodations.length > 0
+        ? 'hospex:offers ' + accommodations.map(a => `<${a}>`).join(', ') + ';'
+        : ''
+    }
+    hospex:storage <${hospexContainer}>.
+
+    `,
+    authenticatedFetch: person.fetch,
+  })
+  // create type index referencing the personal hospex document
+  const typeIndex = new URL(
+    './settings/publicTypeIndex.ttl',
+    person.podUrl,
+  ).toString()
+
+  await createResource({
+    url: typeIndex,
+    body: `
+    @prefix solid: <http://www.w3.org/ns/solid/terms#>.
+    @prefix dct: <http://purl.org/dc/terms/>.
+    @prefix hospex: <http://w3id.org/hospex/ns#>.
+
+    <> a solid:TypeIndex, solid:ListedDocument;
+      dct:references <#registration>.
+    <#registration> a solid:TypeRegistration;
+      solid:forClass hospex:PersonalHospexDocument;
+      solid:instance <${personalHospexDocument}>.
+    `,
+    acls: [
+      { permissions: ['Read', 'Write', 'Control'], agents: [person.webId] },
+      { permissions: ['Read'], agentClasses: [foaf.Agent] },
+    ],
+    authenticatedFetch: person.fetch,
+  })
+
+  // save type index to webId
+  await patchFile({
+    url: getResource(person.webId),
+    inserts: `<${person.webId}> <${solid.publicTypeIndex}> <${typeIndex}>.`,
+    authenticatedFetch: person.fetch,
+  })
 }
 
 /**
@@ -51,7 +166,7 @@ export const getAcl = async (
 export const generateAccommodationUri = (person: Pick<Person, 'podUrl'>) =>
   `${person.podUrl}${
     person.podUrl.endsWith('/') ? '' : '/'
-  }hospex/test/${uuidv4()}#accommodation`
+  }hospex/test/${randomUUID()}#accommodation`
 
 export const getContainer = (uri: string) =>
   uri.substring(0, uri.lastIndexOf('/') + 1)

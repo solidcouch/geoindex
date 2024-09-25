@@ -78,30 +78,6 @@ const createApp = async (config: AppConfig) => {
       authorizeGroups(config.allowedGroups),
       queryThings,
     )
-  // .post(
-  //   '/notification',
-  //   solidAuth,
-  //   authorizeGroups(allowedGroups),
-  //   /* #swagger.requestBody = {
-  //     required: true,
-  //     content: {
-  //       'application/ld+json': {
-  //         schema: {
-  //           $ref: '#/components/schemas/notification',
-  //         },
-  //       },
-  //     },
-  //   }
-  //   */
-  //   validateBody(schema.notification),
-  //   checkGroupMembership(allowedGroups, 'request.body.target.id', 400),
-  // )
-  // .get(
-  //   '/status/:webId',
-  //   solidAuth,
-  //   authorizeGroups(allowedGroups),
-  //   checkGroupMembership(allowedGroups, 'params.webId', 400),
-  // )
 
   app
     .use(helmet())
