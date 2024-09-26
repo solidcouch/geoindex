@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv'
+dotenv.config({ path: '.env.test' })
+
 import * as css from '@solid/community-server'
 import { IncomingMessage, Server, ServerResponse } from 'http'
 import { dirname } from 'node:path'
@@ -21,7 +24,7 @@ let person: Person
 let person2: Person
 let person3: Person
 let cssServer: css.App
-let group: Person & { groupURI?: string }
+let group: Person
 const appConfig = { ...importedConfig }
 const testConfig = {
   cssPort: -1,
@@ -32,7 +35,8 @@ before(() => {
   testConfig.cssPort = getRandomPort()
   testConfig.cssUrl = `http://localhost:${testConfig.cssPort}`
 
-  appConfig.allowedGroups = [testConfig.cssUrl + '/group/group#us']
+  appConfig.indexedGroups = [testConfig.cssUrl + '/group/group#us']
+  appConfig.allowedGroups = appConfig.indexedGroups
   appConfig.port = getRandomPort()
   appConfig.baseUrl = `http://localhost:${appConfig.port}`
 })
@@ -110,10 +114,8 @@ beforeEach(async () => {
     testConfig.cssUrl,
   )
 
-  group.groupURI = group.podUrl + 'group#us'
-
   await createResource({
-    url: group.groupURI,
+    url: appConfig.indexedGroups[0],
     body: `
       @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
       <#us> vcard:hasMember <${person.webId}>, <${person3.webId}>, <${appConfig.baseUrl}/profile/card#bot>.

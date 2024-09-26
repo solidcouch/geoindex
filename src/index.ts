@@ -11,7 +11,7 @@ createApp(config).then(app =>
     // run the refresh once, then schedule the job
     try {
       await refreshIndex(
-        config.allowedGroups,
+        config.indexedGroups,
         config.baseUrl,
         config.thingTypes,
       )
@@ -21,7 +21,7 @@ createApp(config).then(app =>
     } finally {
       console.log('scheduling jobs')
       new CronJob(
-        '* * * * *',
+        config.refreshSchedule,
         async () => {
           await refreshIndex(
             config.allowedGroups,

@@ -17,9 +17,9 @@ describe('The service regularly crawls Things of its group members, and updates 
   beforeEach(async function () {
     this.timeout(60000)
     // update the group - make it have many members
-
-    expect(group.groupURI).to.exist
-    const communityUri = getContainer(group.groupURI!) + 'community#us'
+    expect(appConfig.indexedGroups).to.have.length(1)
+    const communityUri =
+      getContainer(appConfig.allowedGroups[0]) + 'community#us'
 
     const people: Person[] = []
     // create Things for these many members - randomly between 0 and 5 things
@@ -31,7 +31,7 @@ describe('The service regularly crawls Things of its group members, and updates 
       const thingsForPerson = Math.floor(Math.random() * 6)
       await setupThingsForPerson({
         person: account,
-        group: group.groupURI!,
+        group: appConfig.allowedGroups[0],
         community: communityUri,
         things: thingsForPerson,
       })
@@ -40,7 +40,7 @@ describe('The service regularly crawls Things of its group members, and updates 
 
     // update group
     await createResource({
-      url: group.groupURI!,
+      url: appConfig.allowedGroups[0],
       body: `
       @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
       <#us> vcard:hasMember ${people
@@ -64,7 +64,7 @@ describe('The service regularly crawls Things of its group members, and updates 
       <${new URL(communityUri).hash}>
         a hospex:Community, sioc:Community;
         sioc:name "Test community"@en;
-        sioc:has_usergroup <${group.groupURI!}>.
+        sioc:has_usergroup <${appConfig.allowedGroups[0]}>.
     `,
       acls: [
         { permissions: ['Read', 'Write', 'Control'], agents: [group.webId] },
@@ -75,10 +75,10 @@ describe('The service regularly crawls Things of its group members, and updates 
   })
 
   it('should go through all members and fresh-update the records of each member (remove all that is missing, add all that is available for each person)', async () => {
-    expect(group.groupURI).to.exist
+    expect(appConfig.indexedGroups).to.have.length(1)
     expect(await Thing.count()).to.equal(0)
     await refreshIndex(
-      [group.groupURI!],
+      appConfig.indexedGroups,
       appConfig.baseUrl,
       appConfig.thingTypes,
     )
