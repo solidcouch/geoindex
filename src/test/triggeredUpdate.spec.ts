@@ -31,7 +31,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
           type: 'Create',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: accommodation,
           },
         }),
@@ -51,7 +51,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
           type: 'Create',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: generateAccommodationUri(person2),
           },
         }),
@@ -175,7 +175,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
           type: 'Create',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: accommodation,
           },
         }),
@@ -198,10 +198,10 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
           '@context': 'https://www.w3.org/ns/activitystreams',
-          type: 'Create',
+          type: 'Delete',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: accommodation,
           },
         }),
@@ -230,7 +230,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
           type: 'Create',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: accommodation,
           },
         }),
@@ -262,10 +262,10 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
           '@context': 'https://www.w3.org/ns/activitystreams',
-          type: 'Create',
+          type: 'Update',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: accommodation,
           },
         }),
@@ -288,7 +288,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
           type: 'Create',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: accommodation,
           },
         }),
@@ -320,10 +320,10 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
         headers: { 'content-type': 'application/ld+json' },
         body: JSON.stringify({
           '@context': 'https://www.w3.org/ns/activitystreams',
-          type: 'Create',
+          type: 'Update',
           actor: { type: 'Person', id: person.webId },
           object: {
-            type: 'Thing',
+            type: 'Document',
             id: accommodation,
           },
         }),

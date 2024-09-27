@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "version": "1.0.0",
-    "title": "Simple Email Notifications",
-    "description": "Hello world! This is a simple email notifier for Solid apps. Read more at https://github.com/OpenHospitalityNetwork/simple-email-notifications"
+    "title": "SolidCouch Geoindex",
+    "description": "This is a geoindex for Solid apps. Read more at https://github.com/solidcouch/geoindex"
   },
   "servers": [
     {
@@ -11,27 +11,7 @@
     }
   ],
   "paths": {
-    "/init": {
-      "post": {
-        "description": "",
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/init"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/verify-email": {
+    "/.well-known/openid-configuration": {
       "get": {
         "description": "",
         "responses": {
@@ -41,7 +21,27 @@
         }
       }
     },
-    "/notification": {
+    "/jwks": {
+      "get": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/profile/card": {
+      "get": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/inbox": {
       "post": {
         "description": "",
         "responses": {
@@ -61,14 +61,13 @@
         }
       }
     },
-    "/status/{webId}": {
+    "/query": {
       "get": {
         "description": "",
         "parameters": [
           {
-            "name": "webId",
-            "in": "path",
-            "required": true,
+            "name": "object",
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -84,43 +83,34 @@
   },
   "components": {
     "schemas": {
-      "init": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email"
-          }
-        },
-        "required": [
-          "email"
-        ],
-        "additionalProperties": false
-      },
       "notification": {
         "type": "object",
         "properties": {
           "@context": {
+            "type": "string",
             "const": "https://www.w3.org/ns/activitystreams"
           },
           "id": {
             "type": "string"
           },
           "type": {
-            "const": "Create"
+            "type": "string",
+            "enum": [
+              "Create",
+              "Update",
+              "Delete"
+            ]
           },
           "actor": {
             "type": "object",
             "properties": {
               "type": {
+                "type": "string",
                 "const": "Person"
               },
               "id": {
                 "type": "string",
                 "format": "uri"
-              },
-              "name": {
-                "type": "string"
               }
             },
             "required": [
@@ -132,34 +122,15 @@
             "type": "object",
             "properties": {
               "type": {
-                "const": "Note"
+                "type": "string",
+                "enum": [
+                  "Document",
+                  "Place"
+                ]
               },
               "id": {
                 "type": "string",
                 "format": "uri"
-              },
-              "content": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "type",
-              "id",
-              "content"
-            ]
-          },
-          "target": {
-            "type": "object",
-            "properties": {
-              "type": {
-                "const": "Person"
-              },
-              "id": {
-                "type": "string",
-                "format": "uri"
-              },
-              "name": {
-                "type": "string"
               }
             },
             "required": [
@@ -172,8 +143,7 @@
           "@context",
           "type",
           "actor",
-          "object",
-          "target"
+          "object"
         ],
         "additionalProperties": false
       }

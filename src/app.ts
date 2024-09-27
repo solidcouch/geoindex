@@ -57,16 +57,16 @@ const createApp = async (config: AppConfig) => {
       solidAuth,
       authorizeGroups(config.allowedGroups),
       /* #swagger.requestBody = {
-      required: true,
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/init',
+        required: true,
+        content: {
+          'application/ld+json': {
+            schema: {
+              $ref: '#/components/schemas/notification',
+            },
           },
         },
-      },
-    }
-    */
+      }
+      */
       validateBody(schema.notification),
       fetchThing,
       validateThing,

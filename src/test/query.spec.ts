@@ -22,6 +22,8 @@ describe('Group members can query service for Things at certain geohash, using T
 
       expect(response.status).to.equal(200)
 
+      expect(response.headers.get('content-type')).to.equal('text/turtle')
+
       const body = await response.text()
 
       const parser = new Parser()

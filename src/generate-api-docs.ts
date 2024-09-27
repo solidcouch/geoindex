@@ -1,13 +1,17 @@
 // https://swagger-autogen.github.io/docs/getting-started/advanced-usage#openapi-3x
 import swaggerAutogen from 'swagger-autogen'
 import { notification } from './schema.js'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const doc = {
   info: {
     version: '',
-    title: 'Simple Email Notifications',
+    title: 'SolidCouch Geoindex',
     description:
-      'Hello world! This is a simple email notifier for Solid apps. Read more at https://github.com/OpenHospitalityNetwork/simple-email-notifications',
+      'This is a geoindex for Solid apps. Read more at https://github.com/solidcouch/geoindex',
   },
   servers: [{ url: '/' }],
   tags: [],
@@ -15,6 +19,6 @@ const doc = {
 }
 
 const outputFile = '../apidocs/openapi.json'
-const routes = ['./app.js']
+const routes = [path.join(__dirname, '../src/app.ts')]
 
 swaggerAutogen({ openapi: '3.1.0' })(outputFile, routes, doc)

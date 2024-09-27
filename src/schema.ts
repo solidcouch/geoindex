@@ -1,15 +1,27 @@
 import { JSONSchemaType } from 'ajv/dist/2020.js'
 
-export const notification = {
+export const notification: JSONSchemaType<{
+  type: 'Create' | 'Update' | 'Delete'
+  id: string
+  '@context': 'https://www.w3.org/ns/activitystreams'
+  actor: { type: 'Person'; id: string }
+  object: {
+    type: 'Document' | 'Place'
+    id: string
+  }
+}> = {
   type: 'object',
   properties: {
-    '@context': { const: 'https://www.w3.org/ns/activitystreams' },
+    '@context': {
+      type: 'string',
+      const: 'https://www.w3.org/ns/activitystreams',
+    },
     id: { type: 'string' },
-    type: { const: 'Create' },
+    type: { type: 'string', enum: ['Create', 'Update', 'Delete'] },
     actor: {
       type: 'object',
       properties: {
-        type: { const: 'Person' },
+        type: { type: 'string', const: 'Person' },
         id: { type: 'string', format: 'uri' },
       },
       required: ['type', 'id'],
@@ -17,7 +29,7 @@ export const notification = {
     object: {
       type: 'object',
       properties: {
-        type: { const: 'Thing' },
+        type: { type: 'string', enum: ['Document', 'Place'] },
         id: { type: 'string', format: 'uri' },
       },
       required: ['type', 'id'],

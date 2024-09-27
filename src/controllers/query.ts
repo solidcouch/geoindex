@@ -26,7 +26,7 @@ export const queryThings: Middleware = async ctx => {
 
   ctx.body = await rdfToString(quads)
   ctx.status = 200
-  ctx.headers['content-type'] = 'text/turtle'
+  ctx.set('content-type', 'text/turtle')
 }
 
 const rdfToString = async (
