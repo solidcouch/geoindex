@@ -39,6 +39,7 @@ before(() => {
   appConfig.allowedGroups = appConfig.indexedGroups
   appConfig.port = getRandomPort()
   appConfig.baseUrl = `http://localhost:${appConfig.port}`
+  appConfig.webId = new URL('/profile/card#bot', appConfig.baseUrl).toString()
 })
 
 before(async function () {

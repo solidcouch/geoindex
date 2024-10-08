@@ -1,7 +1,7 @@
 import { QueryAndStore, RdfQuery, run } from '@ldhop/core'
+import { getAuthenticatedFetch } from '@soid/koa'
 import { Parser, Store } from 'n3'
 import { dct, sioc, solid, vcard } from 'rdf-namespaces'
-import { getAuthenticatedFetch } from '../identity.js'
 import { hospex } from '../namespaces.js'
 import { HttpError } from '../utils/errors.js'
 import { fetchThing, saveThing, validateThing } from '../utils/thing.js'
@@ -74,17 +74,17 @@ const fetchPersonThings = async ({
 
 export const refreshIndex = async (
   groups: string[],
-  baseUrl: string,
+  webId: string,
   thingTypes: string[],
 ) => {
   const members = new Set(
-    await fetchGroups(groups, await getAuthenticatedFetch({ baseUrl })),
+    await fetchGroups(groups, await getAuthenticatedFetch(webId)),
   )
 
   let count = 0
 
   for (const member of members) {
-    const authFetch = await getAuthenticatedFetch({ baseUrl })
+    const authFetch = await getAuthenticatedFetch(webId)
     const things = await fetchPersonThings({
       person: member,
       fetch: authFetch,

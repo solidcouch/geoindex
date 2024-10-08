@@ -14,6 +14,7 @@ export const port = +process.env.PORT
 
 // server base url, e.g. to construct correct email verification links
 export const baseUrl = process.env.BASE_URL ?? `http://localhost:${port}`
+export const webId = new URL('/profile/card#bot', baseUrl).toString()
 
 export const isBehindProxy = stringToBoolean(process.env.BEHIND_PROXY)
 

@@ -56,6 +56,17 @@ yarn test
 
 Tests are placed in [src/test/](./src/test/)
 
+## TODO
+
+- [ ] remove stale accommodations after index updates, otherwise they may hang there forever
+- [ ] maybe also validate and store the person, community, ... in the database. We may have index for multiple communities in the future.
+- [ ] maybe configure the server by providing its webId - that will provide baseUrl, hash, path to webId.
+- [ ] cache the groups, possibly with etags - they don't need to be fetched every time.
+
+## Maybe
+
+- [ ] index multiple communities, and show the results to particular community members only
+
 ## License
 
 MIT

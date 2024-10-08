@@ -1,9 +1,9 @@
+import { getAuthenticatedFetch } from '@soid/koa'
 import type { Middleware } from 'koa'
 import { Parser, Store } from 'n3'
 import ngeohash from 'ngeohash'
 import { rdf } from 'rdf-namespaces'
 import { Thing } from '../database.js'
-import { getAuthenticatedFetch } from '../identity.js'
 import { AppConfig } from '../middlewares/loadConfig.js'
 import { geo } from '../namespaces.js'
 
@@ -12,11 +12,11 @@ export const fetchThing: Middleware<{ config: AppConfig }> = async ctx => {
     object: { id: thing },
   } = ctx.request.body
 
-  const { baseUrl, thingTypes } = ctx.state.config
+  const { webId, thingTypes } = ctx.state.config
 
   if (typeof thing !== 'string') throw new Error('thing is not URI')
 
-  const authFetch = await getAuthenticatedFetch({ baseUrl })
+  const authFetch = await getAuthenticatedFetch(webId)
 
   const response = await authFetch(thing)
 
