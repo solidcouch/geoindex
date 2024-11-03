@@ -10,11 +10,7 @@ createApp(config).then(app =>
 
     // run the refresh once, then schedule the job
     try {
-      await refreshIndex(
-        config.indexedGroups,
-        config.baseUrl,
-        config.thingTypes,
-      )
+      await refreshIndex(config.indexedGroups, config.webId, config.thingTypes)
       console.log('index refreshed')
     } catch (e) {
       console.log('index refreshing failed', e)
@@ -25,7 +21,7 @@ createApp(config).then(app =>
         async () => {
           await refreshIndex(
             config.allowedGroups,
-            config.baseUrl,
+            config.webId,
             config.thingTypes,
           )
         },

@@ -79,7 +79,7 @@ describe('The service regularly crawls Things of its group members, and updates 
     expect(await Thing.count()).to.equal(0)
     await refreshIndex(
       appConfig.indexedGroups,
-      appConfig.baseUrl,
+      appConfig.webId,
       appConfig.thingTypes,
     )
     expect(await Thing.count()).to.equal(thingsCount)
