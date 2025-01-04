@@ -1,29 +1,42 @@
 /* eslint-disable no-console */
 import { CronJob } from 'cron'
 import { createApp } from './app.js'
-import * as config from './config/index.js'
+import {
+  allowedGroups,
+  database,
+  indexedGroups,
+  isBehindProxy,
+  port,
+  refreshSchedule,
+  thingTypes,
+  webId,
+} from './config/index.js'
 import { refreshIndex } from './tasks/refreshIndex.js'
 
-createApp(config).then(app =>
-  app.listen(config.port, async () => {
-    console.log(`geoindex service is listening on port ${config.port}`)
+createApp({
+  port,
+  indexedGroups,
+  webId,
+  thingTypes,
+  isBehindProxy,
+  allowedGroups,
+  database,
+}).then(app =>
+  app.listen(port, async () => {
+    console.log(`geoindex service is listening on port ${port}`)
 
     // run the refresh once, then schedule the job
     try {
-      await refreshIndex(config.indexedGroups, config.webId, config.thingTypes)
+      await refreshIndex(indexedGroups, webId, thingTypes)
       console.log('index refreshed')
     } catch (e) {
       console.log('index refreshing failed', e)
     } finally {
       console.log('scheduling jobs')
       new CronJob(
-        config.refreshSchedule,
+        refreshSchedule,
         async () => {
-          await refreshIndex(
-            config.allowedGroups,
-            config.webId,
-            config.thingTypes,
-          )
+          await refreshIndex(allowedGroups, webId, thingTypes)
         },
         () => {
           console.log('refresh of the index completed')

@@ -1,7 +1,7 @@
-import { Middleware } from 'koa'
+import { type Middleware } from 'koa'
 import * as config from '../config/index.js'
 
-export type AppConfig = typeof config
+export type AppConfig = Omit<typeof config, 'refreshSchedule'>
 
 export const loadConfig: (
   config: AppConfig,

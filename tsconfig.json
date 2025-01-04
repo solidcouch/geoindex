@@ -1,18 +1,22 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
     "esModuleInterop": true,
-    "target": "es6",
-    "moduleResolution": "nodenext",
-    "sourceMap": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    // "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "module": "NodeNext",
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true,
-    "noImplicitAny": true,
-    "downlevelIteration": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "lib": ["esnext", "dom"]
-  }
+    "sourceMap": true,
+    "lib": ["ESNext"],
+    "types": ["node"]
+  },
+  "include": ["./src"]
 }

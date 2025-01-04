@@ -13,7 +13,7 @@ import {
 import { queryThings } from './controllers/query.js'
 import { initializeDatabase } from './database.js'
 import { authorizeGroups } from './middlewares/authorizeGroup.js'
-import { AppConfig, loadConfig } from './middlewares/loadConfig.js'
+import { type AppConfig, loadConfig } from './middlewares/loadConfig.js'
 import { solidAuth } from './middlewares/solidAuth.js'
 import { validateBody } from './middlewares/validate.js'
 import * as schema from './schema.js'
@@ -57,7 +57,7 @@ const createApp = async (config: AppConfig) => {
     )
 
   app
-    .use(helmet())
+    .use(helmet.default())
     .use(cors())
     .use(
       bodyParser({
@@ -66,6 +66,7 @@ const createApp = async (config: AppConfig) => {
           json: ['application/ld+json', 'application/json'],
           text: ['text/turtle'],
         },
+        encoding: 'utf-8',
       }),
     )
     .use(loadConfig(config))

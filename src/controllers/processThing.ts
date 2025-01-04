@@ -4,7 +4,7 @@ import { Parser, Store } from 'n3'
 import ngeohash from 'ngeohash'
 import { rdf } from 'rdf-namespaces'
 import { Thing } from '../database.js'
-import { AppConfig } from '../middlewares/loadConfig.js'
+import { type AppConfig } from '../middlewares/loadConfig.js'
 import { geo } from '../namespaces.js'
 
 export const fetchThing: Middleware<{ config: AppConfig }> = async ctx => {
@@ -32,7 +32,7 @@ export const fetchThing: Middleware<{ config: AppConfig }> = async ctx => {
   if (!response.ok) throw new Error('Not accessible')
 
   const parser = new Parser({
-    format: <string>ctx.response.headers['content-type'] ?? 'text/turtle',
+    format: (ctx.response.headers['content-type'] as string) ?? 'text/turtle',
     baseIRI: thing,
   })
 
@@ -81,6 +81,8 @@ export const fetchThing: Middleware<{ config: AppConfig }> = async ctx => {
   if (
     latitudes.length !== 1 ||
     longitudes.length !== 1 ||
+    latitudes[0] === undefined ||
+    longitudes[0] === undefined ||
     isNaN(latitudes[0]) ||
     isNaN(longitudes[0])
   )

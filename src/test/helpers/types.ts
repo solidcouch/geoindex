@@ -1,4 +1,4 @@
-export type Person = {
+export interface Person {
   idp: string
   podUrl: string
   webId: string

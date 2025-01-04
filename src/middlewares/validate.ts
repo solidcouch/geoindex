@@ -1,5 +1,5 @@
 import addFormats from 'ajv-formats'
-import { default as Ajv2020, AnySchema } from 'ajv/dist/2020.js'
+import { default as Ajv2020, type AnySchema } from 'ajv/dist/2020.js'
 import type { Middleware } from 'koa'
 
 const ajv = new Ajv2020.default({ allErrors: true, strictNumbers: true })

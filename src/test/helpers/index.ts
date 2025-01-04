@@ -1,9 +1,9 @@
 import { parseLinkHeader } from '@solid/community-server'
-import { expect } from 'chai'
 import { createAccount, getAuthenticatedFetch } from 'css-authn/dist/7.x.js'
 import ngeohash from 'ngeohash'
 import { randomUUID } from 'node:crypto'
 import { foaf, sioc, solid } from 'rdf-namespaces'
+import { expect } from 'vitest'
 import { Thing } from '../../database.js'
 import { hospex } from '../../namespaces.js'
 import { createContainer, createResource, patchFile } from './setupPod.js'
@@ -150,7 +150,7 @@ export const getAcl = async (
   ffetch: typeof globalThis.fetch = globalThis.fetch,
 ) => {
   const response = await ffetch(uri, { method: 'HEAD' })
-  expect(response.ok).to.be.true
+  expect(response.ok).toBe(true)
   const linkHeader = response.headers.get('link')
   const links = parseLinkHeader(linkHeader ?? '')
   const aclLink = links.find(link => link.parameters.rel === 'acl')

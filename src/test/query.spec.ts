@@ -1,13 +1,13 @@
-import { expect } from 'chai'
 import { DataFactory, Parser, Store } from 'n3'
+import { describe, expect, it } from 'vitest'
 import { Thing } from '../database.js'
 import { createRandomThingsInDb } from './helpers/index.js'
-import { appConfig, person, person2 } from './testSetup.spec.js'
+import { appConfig, person, person2 } from './setup.js'
 
 const { namedNode, quad, literal } = DataFactory
 
 describe('Group members can query service for Things at certain geohash, using Triple Pattern Fragment* (*including more data than asked for)', () => {
-  context('group member', () => {
+  describe('group member', () => {
     it('should respond with things at given geohash', async () => {
       await createRandomThingsInDb(2000)
       await Thing.create({
@@ -20,9 +20,9 @@ describe('Group members can query service for Things at certain geohash, using T
         )}&object=${encodeURIComponent('"ez"')}`,
       )
 
-      expect(response.status).to.equal(200)
+      expect(response.status).toBe(200)
 
-      expect(response.headers.get('content-type')).to.equal('text/turtle')
+      expect(response.headers.get('content-type')).toBe('text/turtle')
 
       const body = await response.text()
 
@@ -30,7 +30,8 @@ describe('Group members can query service for Things at certain geohash, using T
       const store = new Store(parser.parse(body))
 
       const quads = store.getQuads(null, null, null, null)
-      expect(quads.length).to.be.within(2, 50) // there is very low probability that more than 25 randomly generated things will hit the right geohash
+      expect(quads.length).toBeGreaterThanOrEqual(2)
+      expect(quads.length).toBeLessThanOrEqual(50) // there is very low probability that more than 25 randomly generated things will hit the right geohash
 
       // we expect the results to include the searched geohash, and the full geohash
       const expectedTriples = [
@@ -47,17 +48,17 @@ describe('Group members can query service for Things at certain geohash, using T
       ]
 
       expectedTriples.forEach(triple => {
-        expect(store.has(triple)).to.be.true
+        expect(store.has(triple)).toBe(true)
       })
     })
 
-    it('pagination')
-    it('validation')
-    it('different - unsupported - query paramvalues')
-    it('no query params specified')
+    it.todo('pagination')
+    it.todo('validation')
+    it.todo('different - unsupported - query paramvalues')
+    it.todo('no query params specified')
   })
 
-  context('not a group member', () => {
+  describe('not a group member', () => {
     it('should return 403', async () => {
       await Thing.create({
         uri: 'https://example.com/example#accommodation',
@@ -69,11 +70,11 @@ describe('Group members can query service for Things at certain geohash, using T
         )}&object=${encodeURIComponent('"ux"')}`,
       )
 
-      expect(response.status).to.equal(403)
+      expect(response.status).toBe(403)
     })
   })
 
-  context('not authenticated', () => {
+  describe('not authenticated', () => {
     it('should return 401', async () => {
       await Thing.create({
         uri: 'https://example.com/example#accommodation',
@@ -85,7 +86,7 @@ describe('Group members can query service for Things at certain geohash, using T
         )}&object=${encodeURIComponent('"ux"')}`,
       )
 
-      expect(response.status).to.equal(401)
+      expect(response.status).toBe(401)
     })
   })
 })

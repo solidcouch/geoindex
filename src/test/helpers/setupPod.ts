@@ -1,8 +1,8 @@
-import { expect } from 'chai'
 import { foaf, solid } from 'rdf-namespaces'
+import { expect } from 'vitest'
 import { getAcl, getContainer, getResource } from './index.js'
 
-type ACLConfig = {
+interface ACLConfig {
   permissions: ('Read' | 'Write' | 'Append' | 'Control')[]
   agents?: string[]
   agentGroups?: string[]
@@ -27,7 +27,7 @@ export const createContainer = async ({
     },
   })
 
-  expect(response.ok).to.be.true
+  expect(response.ok).toBe(true)
 
   if (acls) {
     for (const aclConfig of acls) {
@@ -57,7 +57,7 @@ export const createResource = async ({
     body,
   })
 
-  expect(response.ok).to.be.true
+  expect(response.ok).toBe(true)
 
   if (acls) {
     for (const aclConfig of acls) {
@@ -94,7 +94,7 @@ export const patchFile = async ({
     body: patch,
     headers: { 'content-type': 'text/n3' },
   })
-  expect(response.ok).to.be.true
+  expect(response.ok).toBe(true)
 }
 
 const addAcl = async ({
@@ -152,7 +152,7 @@ const addAcl = async ({
       }.`,
   })
 
-  expect(response.ok).to.be.true
+  expect(response.ok).toBe(true)
 
   return response
 }

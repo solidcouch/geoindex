@@ -1,5 +1,5 @@
-import { expect } from 'chai'
 import { foaf } from 'rdf-namespaces'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { Thing } from '../database.js'
 import { refreshIndex } from '../tasks/refreshIndex.js'
 import {
@@ -10,14 +10,17 @@ import {
 } from './helpers/index.js'
 import { createResource } from './helpers/setupPod.js'
 import { Person } from './helpers/types.js'
-import { appConfig, group, testConfig } from './testSetup.spec.js'
+import { appConfig, group, testConfig } from './setup.js'
 
 describe('The service regularly crawls Things of its group members, and updates itself accordingly.', () => {
   let thingsCount = 0
-  beforeEach(async function () {
-    this.timeout(60000)
+  beforeEach(async () => {
     // update the group - make it have many members
-    expect(appConfig.indexedGroups).to.have.length(1)
+    expect(appConfig.indexedGroups).toHaveLength(1)
+
+    if (!appConfig.allowedGroups[0])
+      throw new Error('No allowed groups specified')
+
     const communityUri =
       getContainer(appConfig.allowedGroups[0]) + 'community#us'
 
@@ -72,24 +75,24 @@ describe('The service regularly crawls Things of its group members, and updates 
       ],
       authenticatedFetch: group.fetch,
     })
-  })
+  }, 60000)
 
   it('should go through all members and fresh-update the records of each member (remove all that is missing, add all that is available for each person)', async () => {
-    expect(appConfig.indexedGroups).to.have.length(1)
-    expect(await Thing.count()).to.equal(0)
+    expect(appConfig.indexedGroups).toHaveLength(1)
+    expect(await Thing.count()).toBe(0)
     await refreshIndex(
       appConfig.indexedGroups,
       appConfig.webId,
       appConfig.thingTypes,
     )
-    expect(await Thing.count()).to.equal(thingsCount)
+    expect(await Thing.count()).toBe(thingsCount)
   })
 
-  it(
+  it.todo(
     '[request goes 502] should make a note and ignore stuff, and if 502 lasts over multiple updates, remove the thing',
   )
 
-  it(
+  it.todo(
     'it should swallow errors, work regularly, overwrite outdated things and non-existent people, should not work twice if overlap goes on',
   )
 })

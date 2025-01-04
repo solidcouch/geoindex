@@ -1,4 +1,7 @@
 import * as dotenv from 'dotenv'
+import { type Writable } from 'type-fest'
+import { afterAll, beforeAll, beforeEach } from 'vitest'
+
 dotenv.config({ path: '.env.test' })
 
 import * as css from '@solid/community-server'
@@ -9,6 +12,7 @@ import { foaf } from 'rdf-namespaces'
 import { createApp } from '../app.js'
 import * as importedConfig from '../config/index.js'
 import { Thing } from '../database.js'
+import { type AppConfig } from '../middlewares/loadConfig.js'
 import {
   createRandomAccount,
   getDefaultPerson,
@@ -25,13 +29,16 @@ let person2: Person
 let person3: Person
 let cssServer: css.App
 let group: Person
-const appConfig = { ...importedConfig }
+const appConfig: Writable<AppConfig> & { baseUrl: string } = {
+  ...importedConfig,
+  baseUrl: '',
+}
 const testConfig = {
   cssPort: -1,
   cssUrl: '',
 }
 
-before(() => {
+beforeAll(() => {
   testConfig.cssPort = getRandomPort()
   testConfig.cssUrl = `http://localhost:${testConfig.cssPort}`
 
@@ -42,8 +49,7 @@ before(() => {
   appConfig.webId = new URL('/profile/card#bot', appConfig.baseUrl).toString()
 })
 
-before(async function () {
-  this.timeout(60000)
+beforeAll(async () => {
   const start = Date.now()
 
   // eslint-disable-next-line no-console
@@ -75,20 +81,24 @@ before(async function () {
     (Date.now() - start) / 1000,
     'seconds',
   )
-})
+}, 60000)
 
-after(async () => {
+afterAll(async () => {
   await cssServer.stop()
 })
 
-before(done => {
-  createApp(appConfig).then(app => {
-    server = app.listen(appConfig.port, done)
+beforeAll(async () => {
+  const app = await createApp(appConfig)
+
+  server = await new Promise(resolve => {
+    const srv = app.listen(appConfig.port, () => {
+      resolve(srv)
+    })
   })
 })
 
-after(done => {
-  server.close(done)
+afterAll(async () => {
+  await new Promise(resolve => server.close(resolve))
 })
 
 // clear the database before each test
@@ -115,6 +125,8 @@ beforeEach(async () => {
     testConfig.cssUrl,
   )
 
+  if (!appConfig.indexedGroups[0]) throw new Error('No indexed groups')
+
   await createResource({
     url: appConfig.indexedGroups[0],
     body: `
@@ -127,6 +139,6 @@ beforeEach(async () => {
     ],
     authenticatedFetch: group.fetch,
   })
-})
+}, 20000)
 
 export { appConfig, group, person, person2, testConfig }

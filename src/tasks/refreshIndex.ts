@@ -130,7 +130,7 @@ const fetchGroup = async (uri: string, fetch: typeof globalThis.fetch) => {
   const rawGroup = await response.text()
 
   const parser = new Parser({
-    format: <string>response.headers.get('content-type') ?? 'text/turtle',
+    format: (response.headers.get('content-type') as string) ?? 'text/turtle',
     baseIRI: uri,
   })
 

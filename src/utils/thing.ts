@@ -20,7 +20,7 @@ export const fetchThing = async (
   if (!response.ok) throw new HttpError("Thing couldn't be fetched", response)
 
   const parser = new Parser({
-    format: <string>response.headers.get('content-type') ?? 'text/turtle',
+    format: (response.headers.get('content-type') as string) ?? 'text/turtle',
     baseIRI: uri,
   })
 
@@ -47,7 +47,7 @@ export const validateThing = (
     longitudes: Quad_Object[]
   },
   { allowedTypes: thingTypes }: { allowedTypes: string[] },
-) => {
+): { latitude: number; longitude: number } => {
   const types = rawThing.types
     .filter(t => t.termType === 'NamedNode')
     .map(t => t.value)
@@ -63,10 +63,13 @@ export const validateThing = (
   const isValid = validate({ types, latitudes, longitudes })
 
   if (!isValid)
-    throw new ValidationError('Thing is not valid', validate.errors!)
+    throw new ValidationError('Thing is not valid', validate.errors ?? [])
 
-  const [latitude] = latitudes
-  const [longitude] = longitudes
+  if (!latitudes[0] || !longitudes[0])
+    throw new ValidationError('Latitude or longitude is missing', [])
+
+  const latitude = latitudes[0]
+  const longitude = longitudes[0]
 
   return { latitude, longitude }
 }

@@ -31,7 +31,7 @@ export class ValidationError extends Error {
 export class ConfigError extends Error {
   constructor(message: string) {
     super(message)
-    this.name = 'ValidationError'
+    this.name = 'ConfigError'
 
     // Set the prototype explicitly to maintain correct instance type
     Object.setPrototypeOf(this, ConfigError.prototype)
