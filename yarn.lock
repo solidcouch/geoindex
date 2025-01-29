@@ -2299,10 +2299,10 @@
     koa-compose "^4.1.0"
     path-to-regexp "^6.3.0"
 
-"@ldhop/core@^0.0.1-alpha.15":
-  version "0.0.1-alpha.16"
-  resolved "https://registry.npmjs.org/@ldhop/core/-/core-0.0.1-alpha.16.tgz#18957917157213cac85ef4d0a681c8539a9162d1"
-  integrity sha512-V3YvT3USbVfrbxf9/FSqUXH2Xu1vo1qFtRW8Kc4mWUkBYJ5/F6lwGf2BKSYpEJEH68f6tB3ZWnysvRhrh9w/Tg==
+"@ldhop/core@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.npmjs.org/@ldhop/core/-/core-0.1.0.tgz#b67f1f3503cc4cf02d69c442e47c54db6376d32d"
+  integrity sha512-89LP9lwgKYXZWM49mcnQS5ZGkRp5cCXEirL8bopNLK9r84wBDhgQVKU9/YG5hgeJHjHcyP64dUCDwrmDcysANQ==
   dependencies:
     "@emotion/hash" "^0.9.1"
     "@types/n3" "^1.16.4"

@@ -1,7 +1,7 @@
 import { QueryAndStore, RdfQuery, run } from '@ldhop/core'
 import { getAuthenticatedFetch } from '@soid/koa'
 import { Parser, Store } from 'n3'
-import { dct, sioc, solid, vcard } from 'rdf-namespaces'
+import { rdf, sioc, solid, vcard } from 'rdf-namespaces'
 import { hospex } from '../namespaces.js'
 import { HttpError } from '../utils/errors.js'
 import { fetchThing, saveThing, validateThing } from '../utils/thing.js'
@@ -16,9 +16,10 @@ const query: RdfQuery = [
   },
   {
     type: 'match',
-    subject: '?publicTypeIndex',
-    predicate: dct.references,
-    pick: 'object',
+    predicate: rdf.type,
+    object: solid.TypeRegistration,
+    graph: '?publicTypeIndex',
+    pick: 'subject',
     target: '?typeRegistration',
   },
   {
