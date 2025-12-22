@@ -1,12 +1,12 @@
-import pluginJs from '@eslint/js'
+import eslint from '@eslint/js'
 import eslintConfigPrettier from 'eslint-config-prettier'
+import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-/** @type {import('eslint').Linter.Config[]} */
-export default tseslint.config(
+export default defineConfig(
   { ignores: ['apidocs', 'dist'] },
-  pluginJs.configs.recommended,
+  eslint.configs.recommended,
   tseslint.configs.recommended,
   tseslint.configs.strict,
   tseslint.configs.stylistic,
