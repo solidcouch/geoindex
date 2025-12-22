@@ -1,5 +1,5 @@
 import { parseLinkHeader } from '@solid/community-server'
-import { createAccount, getAuthenticatedFetch } from 'css-authn/dist/7.x.js'
+import { v7 } from 'css-authn'
 import ngeohash from 'ngeohash'
 import { randomUUID } from 'node:crypto'
 import { foaf, sioc, solid } from 'rdf-namespaces'
@@ -14,14 +14,14 @@ export const createRandomAccount = async ({
 }: {
   solidServer: string
 }) => {
-  const account = await createAccount({
+  const account = await v7.createAccount({
     username: randomUUID(),
     password: randomUUID(),
     email: randomUUID() + '@example.com',
     provider: solidServer,
   })
 
-  const authenticatedFetch = await getAuthenticatedFetch({
+  const authenticatedFetch = await v7.getAuthenticatedFetch({
     email: account.email,
     password: account.password,
     provider: solidServer,
@@ -200,7 +200,10 @@ export const getDefaultPerson = async (
   }
   return {
     ...withoutFetch,
-    fetch: await getAuthenticatedFetch({ ...withoutFetch, provider: cssUrl }),
+    fetch: await v7.getAuthenticatedFetch({
+      ...withoutFetch,
+      provider: cssUrl,
+    }),
   }
 }
 

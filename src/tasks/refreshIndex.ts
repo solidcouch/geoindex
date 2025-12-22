@@ -1,4 +1,4 @@
-import { QueryAndStore, RdfQuery, run } from '@ldhop/core'
+import { LdhopEngine, LdhopQuery, run, Variable } from '@ldhop/core'
 import { getAuthenticatedFetch } from '@soid/koa'
 import { Parser, Store } from 'n3'
 import { rdf, sioc, solid, vcard } from 'rdf-namespaces'
@@ -6,7 +6,16 @@ import { hospex } from '../namespaces.js'
 import { HttpError } from '../utils/errors.js'
 import { fetchThing, saveThing, validateThing } from '../utils/thing.js'
 
-const query: RdfQuery = [
+const query: LdhopQuery<
+  | '?person'
+  | '?publicTypeIndex'
+  | '?typeRegistration'
+  | '?typeRegistrationForHospex'
+  | '?hospexDocument'
+  | '?community'
+  | '?hospexDocumentForCommunity'
+  | '?thing'
+> = [
   {
     type: 'match',
     subject: '?person',
@@ -26,7 +35,7 @@ const query: RdfQuery = [
     type: 'match',
     subject: '?typeRegistration',
     predicate: solid.forClass,
-    object: hospex + 'PersonalHospexDocument',
+    object: `${hospex}PersonalHospexDocument`,
     pick: 'subject',
     target: '?typeRegistrationForHospex',
   },
@@ -49,28 +58,28 @@ const query: RdfQuery = [
   {
     type: 'match',
     subject: '?person',
-    predicate: hospex + 'offers',
+    predicate: `${hospex}offers`,
     pick: 'object',
     target: '?thing',
   },
 ]
 
-const fetchPersonThings = async ({
+const fetchPersonThings = async <V extends Variable>({
   person,
   fetch,
   query,
 }: {
   person: string
   fetch: typeof globalThis.fetch
-  query: RdfQuery
+  query: LdhopQuery<V | '?person' | '?thing'>
 }) => {
-  const qas = new QueryAndStore(query, {
-    person: new Set([person]),
-  })
+  const engine = new LdhopEngine(query, {
+    '?person': new Set([person]),
+  } as Partial<Record<V | '?person' | '?thing', Set<string>>>)
 
-  await run(qas, fetch)
+  await run(engine, fetch)
 
-  return qas.getVariable('thing')
+  return engine.getVariable('?thing')
 }
 
 export const refreshIndex = async (
@@ -92,10 +101,11 @@ export const refreshIndex = async (
       query,
     })
 
-    for (const uri of things) {
-      const raw = await fetchThing(uri, authFetch)
+    for (const term of things) {
+      if (term.termType !== 'NamedNode') return
+      const raw = await fetchThing(term.value, authFetch)
       const thing = validateThing(raw, { allowedTypes: thingTypes })
-      await saveThing({ ...thing, uri })
+      await saveThing({ ...thing, uri: term.value })
       count++
     }
   }
