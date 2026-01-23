@@ -94,19 +94,31 @@ export const refreshIndex = async (
   let count = 0
 
   for (const member of members) {
-    const authFetch = await getAuthenticatedFetch(webId)
-    const things = await fetchPersonThings({
-      person: member,
-      fetch: authFetch,
-      query,
-    })
+    try {
+      const authFetch = await getAuthenticatedFetch(webId)
+      const things = await fetchPersonThings({
+        person: member,
+        fetch: authFetch,
+        query,
+      })
 
-    for (const term of things) {
-      if (term.termType !== 'NamedNode') return
-      const raw = await fetchThing(term.value, authFetch)
-      const thing = validateThing(raw, { allowedTypes: thingTypes })
-      await saveThing({ ...thing, uri: term.value })
-      count++
+      for (const term of things) {
+        try {
+          if (term.termType !== 'NamedNode')
+            throw new Error('Thing Term in not a URI')
+          const raw = await fetchThing(term.value, authFetch)
+          const thing = validateThing(raw, { allowedTypes: thingTypes })
+          await saveThing({ ...thing, uri: term.value })
+          count++
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error(e)
+          continue
+        }
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e)
     }
   }
 

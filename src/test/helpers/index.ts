@@ -7,7 +7,7 @@ import { expect } from 'vitest'
 import { Thing } from '../../database.js'
 import { hospex } from '../../namespaces.js'
 import { createContainer, createResource, patchFile } from './setupPod.js'
-import { Person } from './types.js'
+import { Account } from './types.js'
 
 export const createRandomAccount = async ({
   solidServer,
@@ -39,14 +39,20 @@ export const setupThingsForPerson = async ({
   community,
   things: thingCount,
 }: {
-  person: Person
+  person: Account
   group: string
   community: string
   things: number
 }) => {
-  const accommodations = Array.from({ length: thingCount }, () =>
+  const accommodationUris = Array.from({ length: thingCount }, () =>
     generateAccommodationUri(person),
   )
+
+  const accommodations = accommodationUris.map(uri => {
+    const [lat, long] = getRandomLocation()
+    return { uri, lat, long }
+  })
+
   const hospexContainer = getContainer(generateAccommodationUri(person))
   // create hospex container
 
@@ -68,10 +74,9 @@ export const setupThingsForPerson = async ({
   })
 
   // create accommodations
-  for (const accommodationUri of accommodations) {
-    const [lat, long] = getRandomLocation()
-    const resource = getResource(accommodationUri)
-    const fragment = new URL(accommodationUri).hash
+  for (const { uri, lat, long } of accommodations) {
+    const resource = getResource(uri)
+    const fragment = new URL(uri).hash
 
     await createResource({
       url: resource,
@@ -99,8 +104,10 @@ export const setupThingsForPerson = async ({
 
     <${person.webId}> <${sioc.member_of}> <${community}>;
     ${
-      accommodations.length > 0
-        ? 'hospex:offers ' + accommodations.map(a => `<${a}>`).join(', ') + ';'
+      accommodationUris.length > 0
+        ? 'hospex:offers ' +
+          accommodationUris.map(a => `<${a}>`).join(', ') +
+          ';'
         : ''
     }
     hospex:storage <${hospexContainer}>.
@@ -140,6 +147,13 @@ export const setupThingsForPerson = async ({
     inserts: `<${person.webId}> <${solid.publicTypeIndex}> <${typeIndex}>.`,
     authenticatedFetch: person.fetch,
   })
+
+  return {
+    hospexContainer,
+    personalHospexDocument,
+    typeIndex,
+    accommodations,
+  }
 }
 
 /**
@@ -163,7 +177,7 @@ export const getAcl = async (
 /**
  * Generate accommodation URI for a given person
  */
-export const generateAccommodationUri = (person: Pick<Person, 'podUrl'>) =>
+export const generateAccommodationUri = (person: Pick<Account, 'podUrl'>) =>
   `${person.podUrl}${
     person.podUrl.endsWith('/') ? '' : '/'
   }hospex/test/${randomUUID()}#accommodation`
@@ -188,9 +202,9 @@ export const getDefaultPerson = async (
     pods: [{ name: string }]
   },
   cssUrl: string,
-): Promise<Person> => {
+): Promise<Account> => {
   const podUrl = `${cssUrl}/${name}/`
-  const withoutFetch: Omit<Person, 'fetch'> = {
+  const withoutFetch: Omit<Account, 'fetch'> = {
     podUrl,
     idp: cssUrl + '/',
     webId: podUrl + 'profile/card#me',

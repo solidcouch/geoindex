@@ -10,7 +10,7 @@ import {
   getResource,
 } from './helpers/index.js'
 import { createContainer, createResource } from './helpers/setupPod.js'
-import { Person } from './helpers/types.js'
+import { Account } from './helpers/types.js'
 import { appConfig, person, person2 } from './setup.js'
 
 describe("POST /inbox When a person creates, updates, or removes a Thing, they can send a notification to this service's inbox. The service will fetch and save the thing's uri, location and owner, as long as it is a valid thing interesting for this service.", () => {
@@ -117,7 +117,7 @@ describe("POST /inbox When a person creates, updates, or removes a Thing, they c
    */
   const beforeFound = async (
     uri: string,
-    person: Person,
+    person: Account,
     thing = hospex + 'Accommodation',
   ) => {
     // TODO create an accommodation that the group can read

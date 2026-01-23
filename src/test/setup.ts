@@ -19,16 +19,16 @@ import {
   getRandomPort,
 } from './helpers/index.js'
 import { createResource } from './helpers/setupPod.js'
-import type { Person } from './helpers/types.js'
+import type { Account } from './helpers/types.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 let server: Server<typeof IncomingMessage, typeof ServerResponse>
-let person: Person
-let person2: Person
-let person3: Person
+let person: Account
+let person2: Account
+let person3: Account
 let cssServer: css.App
-let group: Person
+let group: Account
 const appConfig: Writable<AppConfig> & { baseUrl: string } = {
   ...importedConfig,
   baseUrl: '',
