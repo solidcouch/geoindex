@@ -10,7 +10,7 @@ import { geo } from '../namespaces.js'
 export const fetchThing: Middleware<{ config: AppConfig }> = async ctx => {
   const {
     object: { id: thing },
-  } = ctx.request.body
+  } = ctx.request.body as { object: { id: string } }
 
   const { webId, thingTypes } = ctx.state.config
 

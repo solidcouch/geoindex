@@ -57,7 +57,7 @@ const createApp = async (config: AppConfig) => {
     )
 
   app
-    .use(helmet.default())
+    .use(helmet())
     .use(cors())
     .use(
       bodyParser({

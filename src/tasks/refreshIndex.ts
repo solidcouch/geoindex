@@ -1,68 +1,37 @@
-import { LdhopEngine, LdhopQuery, run, Variable } from '@ldhop/core'
+import {
+  ldhop,
+  LdhopEngine,
+  LdhopQuery,
+  MixedVariables,
+  run,
+  Variable,
+} from '@ldhop/core'
 import { getAuthenticatedFetch } from '@soid/koa'
 import { Parser, Store } from 'n3'
-import { rdf, sioc, solid, vcard } from 'rdf-namespaces'
+import { rdf, rdfs, sioc, solid, vcard } from 'rdf-namespaces'
 import { hospex } from '../namespaces.js'
 import { HttpError } from '../utils/errors.js'
 import { fetchThing, saveThing, validateThing } from '../utils/thing.js'
 
-const query: LdhopQuery<
-  | '?person'
-  | '?publicTypeIndex'
-  | '?typeRegistration'
-  | '?typeRegistrationForHospex'
-  | '?hospexDocument'
-  | '?community'
-  | '?hospexDocumentForCommunity'
-  | '?thing'
-> = [
-  {
-    type: 'match',
-    subject: '?person',
-    predicate: solid.publicTypeIndex,
-    pick: 'object',
-    target: '?publicTypeIndex',
-  },
-  {
-    type: 'match',
-    predicate: rdf.type,
-    object: solid.TypeRegistration,
-    graph: '?publicTypeIndex',
-    pick: 'subject',
-    target: '?typeRegistration',
-  },
-  {
-    type: 'match',
-    subject: '?typeRegistration',
-    predicate: solid.forClass,
-    object: `${hospex}PersonalHospexDocument`,
-    pick: 'subject',
-    target: '?typeRegistrationForHospex',
-  },
-  {
-    type: 'match',
-    subject: '?typeRegistrationForHospex',
-    predicate: solid.instance,
-    pick: 'object',
-    target: `?hospexDocument`,
-  },
-  { type: 'add resources', variable: '?hospexDocument' },
-  {
-    type: 'match',
-    subject: '?person',
-    predicate: sioc.member_of,
-    object: '?community',
-    pick: 'graph',
-    target: '?hospexDocumentForCommunity',
-  },
-  {
-    type: 'match',
-    subject: '?person',
-    predicate: `${hospex}offers`,
-    pick: 'object',
-    target: '?thing',
-  },
-]
+const query = ldhop('?person', '?community')
+  // Go to person's webId and fetch extended proimage documents, too
+  .match('?person', rdfs.seeAlso)
+  .o('?extendedDocument')
+  .add()
+  .match('?person', solid.publicTypeIndex)
+  .o('?publicTypeIndex')
+  .match(null, rdf.type, solid.TypeRegistration, '?publicTypeIndex')
+  .s('?typeRegistration')
+  .match('?typeRegistration', solid.forClass, `${hospex}PersonalHospexDocument`)
+  .s('?typeRegistrationForHospex')
+  .match('?typeRegistrationForHospex', solid.instance)
+  .o('?hospexDocument')
+  .add()
+  .match('?person', sioc.member_of, '?community')
+  .g('?hospexDocumentForCommunity')
+  .match('?person', `${hospex}offers`)
+  .o('?thing')
+  .toArray()
 
 const fetchPersonThings = async <V extends Variable>({
   person,
@@ -71,11 +40,11 @@ const fetchPersonThings = async <V extends Variable>({
 }: {
   person: string
   fetch: typeof globalThis.fetch
-  query: LdhopQuery<V | '?person' | '?thing'>
+  query: LdhopQuery<'?person' | '?thing' | V>
 }) => {
-  const engine = new LdhopEngine(query, {
-    '?person': new Set([person]),
-  } as Partial<Record<V | '?person' | '?thing', Set<string>>>)
+  const engine = new LdhopEngine(query, { person: [person] } as Partial<
+    MixedVariables<'?person' | '?thing' | V>
+  >)
 
   await run(engine, fetch)
 
